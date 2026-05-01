@@ -139,7 +139,7 @@ tr:hover td{background:var(--surface2)}
   <div class="logo">宜</div>
   <div>
     <h1>114年度資本門計畫 · 資料檢核系統</h1>
-    <p>宜蘭縣政府計畫處 ｜ 月分配驗證 · 必填欄位 · 元/千元偵測 · #DIV/0! 統計</p>
+    <p>宜蘭縣政府計畫處 ｜ 月分配驗證 · 必須修正項目強制檢核 · 備註豁免機制</p>
   </div>
   <span class="hdr-badge">純瀏覽器 · 零安裝</span>
 </header>
@@ -157,36 +157,33 @@ tr:hover td{background:var(--surface2)}
     <div class="how-grid">
       <div class="how-step">
         <div class="how-num">01</div>
-        <p><strong>直接開啟本 HTML</strong><br>在瀏覽器雙擊此檔案即可，不需安裝 Python 或任何軟體。</p>
+        <p><strong>直接開啟本 HTML</strong><br>在瀏覽器雙擊此檔案即可，不需安裝任何軟體。</p>
       </div>
       <div class="how-step">
         <div class="how-num">02</div>
-        <p><strong>拖曳上傳所有 ODS</strong><br>將各單位回傳的 .ods 全部一起拖曳到框內，或點擊多選。</p>
+        <p><strong>拖曳上傳所有 ODS</strong><br>將各單位回傳的 .ods 全部一起拖曳到框內 (ex: 1.秘書處OK.ods)，系統會自動排除含「範例」的工作表。</p>
       </div>
       <div class="how-step">
         <div class="how-num">03</div>
-        <p><strong>自動產生報告</strong><br>系統自動偵測：月分配不符、元/千元混填、必填缺漏、#DIV/0!。</p>
+        <p><strong>自動檢核必須修正項目</strong><br>✔ 項次連續規則<br>✔ 預計決標日/開工日/履約期間 (主計畫未填且無備註即不通過)<br>✔ 預算(1)=(2)+(3)<br>✔ 月分配加總 = 本年度預算數</p>
       </div>
       <div class="how-step">
         <div class="how-num">04</div>
-        <p><strong>匯出寄送各單位</strong><br>每單位一份 .html 報告，列明「第X案有什麼問題」，直接附件寄出。</p>
+        <p><strong>匯出寄送各單位</strong><br>每單位一份 .html 報告，明列「第X案缺失說明」，直接附件寄回。</p>
       </div>
     </div>
     <div class="tip">
       🔒 <strong>完全離線使用：</strong>下載
       <code>xlsx.full.min.js</code>（搜尋 "SheetJS 0.18.5 cdnjs"）放在本 HTML 同一資料夾，即可在完全無網環境使用。<br><br>
-      🌐 <strong>GitHub Pages 部署（推薦）：</strong>建立一個 GitHub repository，
-      將本 HTML 命名為 <code>index.html</code>，同資料夾放入 <code>xlsx.full.min.js</code>，
-      在 repo Settings → Pages 選擇 main branch 發佈，
-      全縣各業務單位即可透過網址開啟，無需安裝任何環境，且資料仍在各自瀏覽器本機處理，不上傳。
+      🌐 <strong>GitHub Pages 部署：</strong>將本 HTML 命名為 <code>index.html</code>，同資料夾放入 <code>xlsx.full.min.js</code>，上傳至 GitHub repo → Settings → Pages 開啟，全縣各業務單位即可透過網址使用，資料完全留在使用者本機。
     </div>
   </details>
 
   <div class="dz" id="dz">
     <input type="file" id="fi" multiple accept=".ods,.ODS">
     <span class="dz-ico">📂</span>
-    <h2>拖曳所有單位的 .ods 檔至此，或點擊選取</h2>
-    <p>可一次選取多個檔案，各單位工作表名稱不同也自動處理</p>
+    <h2>拖曳所有單位的 .ods 檔至此 (自動排除「範例」工作表)</h2>
+    <p>支援檔名範例：1.秘書處OK.ods 、2.民政處OK.ods 。系統自動抓取不含「範例」之工作表</p>
     <small>🔒 所有驗證均在本機瀏覽器完成，資料不會傳送至任何伺服器</small>
   </div>
 
@@ -200,10 +197,10 @@ tr:hover td{background:var(--surface2)}
     <div class="stat-grid">
       <div class="stat s-blue"><div class="stat-lbl">載入單位數</div><div class="stat-val" id="sU">0</div></div>
       <div class="stat s-blue"><div class="stat-lbl">計畫案總數</div><div class="stat-val" id="sC">0</div></div>
-      <div class="stat s-red"><div class="stat-lbl">月分配不符</div><div class="stat-val" id="sB">0</div></div>
+      <div class="stat s-red"><div class="stat-lbl">必須修正項</div><div class="stat-val" id="sMust">0</div></div>
       <div class="stat s-purple"><div class="stat-lbl">元/千元混填</div><div class="stat-val" id="sU2">0</div></div>
-      <div class="stat s-amber"><div class="stat-lbl">必填缺漏案數</div><div class="stat-val" id="sM">0</div></div>
-      <div class="stat s-amber"><div class="stat-lbl">#DIV/0! 錯誤格</div><div class="stat-val" id="sD">0</div></div>
+      <div class="stat s-amber"><div class="stat-lbl">備註說明中</div><div class="stat-val" id="sRemarkNote">0</div></div>
+      <div class="stat s-amber"><div class="stat-lbl">#DIV/0! 格數</div><div class="stat-val" id="sD">0</div></div>
       <div class="stat s-green"><div class="stat-lbl">完全正確單位</div><div class="stat-val" id="sOK">0</div></div>
     </div>
 
@@ -221,402 +218,311 @@ tr:hover td{background:var(--surface2)}
       </div>
       <div id="cards"></div>
     </div>
-
   </div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════
-   SHEETJS LOADER
-═══════════════════════════════════════════════ */
-function loadJS(src,ok,fail){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=fail;document.head.appendChild(s);}
+/* ──────────────────────────────────────────────────────────
+   SHEETJS LOADER (CDN + local fallback)
+────────────────────────────────────────────────────────── */
+function loadJS(src, ok, fail){ var s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=fail; document.head.appendChild(s); }
 loadJS('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-  function(){boot();},
-  function(){loadJS('./xlsx.full.min.js',function(){boot();},function(){document.getElementById('cdnAlert').classList.add('show');});}
+  function(){ boot(); },
+  function(){ loadJS('./xlsx.full.min.js', function(){ boot(); }, function(){ document.getElementById('cdnAlert').classList.add('show'); }); }
 );
 
-/* ═══════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════ */
-var ALL=[];
+/* ──────────────────────────────────────────────────────────
+   GLOBAL STATE
+────────────────────────────────────────────────────────── */
+var ALL = [];
 
-/* ═══════════════════════════════════════════════
+/* ──────────────────────────────────────────────────────────
    BOOT
-═══════════════════════════════════════════════ */
+────────────────────────────────────────────────────────── */
 function boot(){
-  var dz=g('dz'),fi=g('fi');
-  fi.addEventListener('change',function(e){go(Array.from(e.target.files));});
-  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
-  dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
-  dz.addEventListener('drop',function(e){
-    e.preventDefault();dz.classList.remove('over');
-    go(Array.from(e.dataTransfer.files).filter(function(f){return/\.ods$/i.test(f.name);}));
+  var dz = document.getElementById('dz'), fi = document.getElementById('fi');
+  fi.addEventListener('change', function(e){ processFiles(Array.from(e.target.files)); });
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('over'); });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault(); dz.classList.remove('over');
+    processFiles(Array.from(e.dataTransfer.files).filter(f => /\.ods$/i.test(f.name)));
   });
 }
 
-/* ═══════════════════════════════════════════════
+/* ──────────────────────────────────────────────────────────
    PROCESS FILES
-═══════════════════════════════════════════════ */
-function go(files){
-  if(!files.length)return;
-  ALL=[];
-  var pw=g('pw'),pf=g('pf'),pl=g('pl');
+────────────────────────────────────────────────────────── */
+function processFiles(files){
+  if(!files.length) return;
+  ALL = [];
+  const pw = document.getElementById('pw'), pf = document.getElementById('pf'), pl = document.getElementById('pl');
   pw.classList.add('show');
-  var i=0;
-  (function next(){
-    if(i>=files.length){render();pw.classList.remove('show');return;}
-    var f=files[i++];
-    pl.textContent='解析中：'+f.name+'（'+i+'/'+files.length+'）';
-    pf.style.width=(i/files.length*100)+'%';
-    var r=new FileReader();
-    r.onload=function(e){
-      try{ALL.push(parse(f.name,e.target.result));}
-      catch(err){ALL.push({fn:f.name,unit:guessName(f.name),sheet:'—',parseErr:err.message,cases:[],be:[],me:[],de:0,ue:[]});}
-      setTimeout(next,15);
+  let idx = 0;
+  function next(){
+    if(idx >= files.length){ render(); pw.classList.remove('show'); return; }
+    const f = files[idx++];
+    pl.textContent = `解析：${f.name} (${idx} / ${files.length})`;
+    pf.style.width = (idx / files.length * 100) + '%';
+    const reader = new FileReader();
+    reader.onload = e => {
+      try { ALL.push(parseODS(f.name, e.target.result)); }
+      catch(err) { ALL.push(errorResult(f.name, err.message)); }
+      setTimeout(next, 10);
     };
-    r.readAsArrayBuffer(f);
-  })();
+    reader.onerror = () => { ALL.push(errorResult(f.name, '檔案讀取失敗')); setTimeout(next, 10); };
+    reader.readAsArrayBuffer(f);
+  }
+  next();
 }
 
-/* ═══════════════════════════════════════════════
-   PARSE ODS
-═══════════════════════════════════════════════ */
-function parse(fn,ab){
-  var wb=XLSX.read(new Uint8Array(ab),{type:'array',cellFormula:false,raw:true,cellDates:false});
-  var sheets=wb.SheetNames;
+function errorResult(fn, msg){ return { fn, unit:guessName(fn), sheet:'—', parseErr:msg, cases:[], seqErr:null, missingMust:[], budgetMismatch:[], monthlyMismatch:[], unitErr:[], de:0, remarkWarn:0 }; }
 
-  /* Smart sheet picker */
-  var c=sheets.filter(function(s){return!s.includes('範例');});
-  if(!c.length)c=sheets;
-  var p=c.filter(function(s){return!s.includes('空白');});
-  var ns=p.filter(function(s){return!s.includes('送主計');});
-  var shName=(ns.length?ns:p.length?p:c).slice(-1)[0];
+/* ──────────────────────────────────────────────────────────
+   ⭐ 核心解析 & 檢核 (符合需求)
+────────────────────────────────────────────────────────── */
+function parseODS(fn, ab){
+  const wb = XLSX.read(new Uint8Array(ab), { type:'array', cellFormula:false, raw:true, cellDates:false });
+  const sheets = wb.SheetNames;
+  // 排除任何含有「範例」字樣的工作表 (不分大小寫)
+  let candidates = sheets.filter(s => !s.includes('範例') && !s.toLowerCase().includes('example'));
+  if(!candidates.length) throw new Error('未找到有效工作表（所有工作表均含「範例」關鍵字）');
+  // 避免空白範本: 再排除「空白」工作表，優先使用有資料的
+  let dataSheets = candidates.filter(s => !s.includes('空白'));
+  let chosen = (dataSheets.length ? dataSheets : candidates).slice(-1)[0];
+  const ws = wb.Sheets[chosen];
+  const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
 
-  var ws=wb.Sheets[shName];
-  var raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
-
-  /* #DIV/0! count */
-  var de=0;
-  var rng=XLSX.utils.decode_range(ws['!ref']||'A1:Z50');
-  for(var R=rng.s.r;R<=rng.e.r;R++)
-    for(var C=rng.s.c;C<=rng.e.c;C++){
-      var cell=ws[XLSX.utils.encode_cell({r:R,c:C})];
-      if(cell&&cell.t==='e')de++;
+  // #DIV/0! 統計
+  let de = 0;
+  let rng = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : { s:{r:0,c:0}, e:{r:50,c:30} };
+  for(let R=rng.s.r; R<=rng.e.r; R++)
+    for(let C=rng.s.c; C<=rng.e.c; C++){
+      let cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+      if(cell && cell.t === 'e') de++;
     }
 
-  /* Find header row */
-  var hr=-1;
-  for(var i=0;i<Math.min(raw.length,12);i++){
-    var row=raw[i];
-    if(row&&row.some(function(c){return c&&String(c).includes('項次');})
-         &&row.some(function(c){return c&&String(c).includes('計畫名稱');})){hr=i;break;}
+  // 找表頭列
+  let hr = -1;
+  for(let i=0; i<Math.min(raw.length, 15); i++){
+    let row = raw[i];
+    if(row && row.some(c => c && String(c).includes('項次')) && row.some(c => c && String(c).includes('計畫名稱'))){
+      hr = i; break;
+    }
   }
-  if(hr<0)throw new Error('找不到表頭列（應含「項次」與「計畫名稱」欄）');
+  if(hr < 0) throw new Error('找不到表頭列（必須包含「項次」「計畫名稱」）');
 
-  var hdrs=raw[hr];
-  var cm=colMap(hdrs);
-  var cases=[],be=[],me=[],ue=[],unitName='';
+  const hdrs = raw[hr];
+  const col = buildColMap(hdrs);
+  const cases = [];
+  let unitName = '';
+  const STOP_KEYWORDS = ['500萬','合計','小計','註1','NOTE','總計'];
 
-  var STOP=['500萬','合計','小計','註1','NOTE'];
-  var EXEMPT=['補助款不需發包','規劃設計案','無需發包','不需發包','無開工','規劃案'];
-  function isEx(v){return v&&EXEMPT.some(function(k){return String(v).includes(k);});}
+  // 豁免關鍵字 (備註有這些字眼則可豁免決標日/開工日/履約期間)
+  const EXEMPT_KEYWORDS = ['補助款不需發包','規劃設計案','無需發包','不需發包','無開工','規劃案','已決標免填','非工程案','免發包'];
 
-  for(var ri=hr+1;ri<raw.length;ri++){
-    var row=raw[ri];if(!row)continue;
-    var c0=nzStr(row[0]);
-    if(STOP.some(function(s){return c0.includes(s);}))break;
+  function hasRemarkExemption(remark){ return remark && EXEMPT_KEYWORDS.some(k => remark.includes(k)); }
 
-    var cn  =nzStr(row,cm.idx);
-    var nm  =nzStr(row,cm.name);
-    if(!cn&&!nm)continue;
-    if(!cn)continue; // sub-item, skip
+  for(let ri = hr+1; ri < raw.length; ri++){
+    let row = raw[ri]; if(!row) continue;
+    let firstCell = nzStr(row[0]);
+    if(STOP_KEYWORDS.some(k => firstCell.includes(k))) break;
+    let cn = nzStr(row, col.idx);
+    let nm = nzStr(row, col.name);
+    if(!cn && !nm) continue;         // 空白列跳過
+    if(!cn) continue;                // 非主計畫項次跳過 (項次需為數字)
+    let unitVal = nzStr(row, col.unit);
+    if(unitVal) unitName = unitVal;
 
-    var un=nzStr(row,cm.unit);if(un)unitName=un;
+    // 預算相關
+    let budget = numVal(row, col.budget);     // 本年度預算數(1)
+    let central = numVal(row, col.central);   // 央款(2)
+    let county = numVal(row, col.county);     // 縣款(3)
+    let monthly = [];
+    let monthlySum = 0;
+    for(let m=0; m<12; m++){
+      let mv = numVal(row, col.mb + m);
+      monthly.push(mv);
+      monthlySum += mv;
+    }
 
-    var budget=numVal(row,cm.bud);
-    var mths=[],ms=0;
-    for(var m=0;m<12;m++){var mv=numVal(row,cm.mb+m);mths.push(mv);ms+=mv;}
+    let decided = nzStr(row, col.decided);
+    let start = nzStr(row, col.start);
+    let duration = nzStr(row, col.duration);
+    let remark = nzStr(row, col.remark);
 
-    var decided=nzStr(row,cm.dec);
-    var start  =nzStr(row,cm.st);
-    var dur    =nzStr(row,cm.dur);
-    var remark =nzStr(row,cm.rem);
+    cases.push({ cn, nm, budget, central, county, monthly, monthlySum, decided, start, duration, remark, rawRow:row });
+  }
 
-    cases.push({cn:cn,nm:nm,budget:budget,mths:mths,ms:ms,
-                decided:decided,start:start,dur:dur,remark:remark});
+  if(!unitName) unitName = guessName(fn);
+  
+  // ---------- 各項檢核 ----------
+  // 1. 項次連續規則 (主計畫數字項次)
+  let seqErrors = null;
+  let mainNums = [];
+  for(let c of cases){
+    let num = parseInt(c.cn,10);
+    if(!isNaN(num) && String(num) === String(c.cn).trim()) mainNums.push(num);
+  }
+  let isSeqValid = true;
+  for(let i=0; i<mainNums.length; i++) if(mainNums[i] !== i+1){ isSeqValid = false; break; }
+  if(!isSeqValid && mainNums.length>0){
+    seqErrors = { found: mainNums, expected: mainNums.map((_,i)=>i+1) };
+  }
 
-    /* Validations */
-    if(budget!==0){
-      var diff=ms-budget;
-      var allZ=mths.every(function(v){return v===0;});
-      var ratio=budget>0?ms/budget:0;
+  // 2. 必須修正項目: 預計決標日/預計開工日/履約期間 未填寫 (無備註豁免視為必須修正)
+  let missingMust = [];  // 存放 {cn,nm,missFields,remark,hasRemark}
+  for(let c of cases){
+    let miss = [];
+    let hasRemarkEx = hasRemarkExemption(c.remark);
+    if(!c.decided && !hasRemarkEx) miss.push('預計決標日');
+    if(!c.start && !hasRemarkEx) miss.push('預計開工日');
+    if(!c.duration && !hasRemarkEx) miss.push('履約期間');
+    if(miss.length){
+      missingMust.push({ cn:c.cn, nm:c.nm, miss, remark:c.remark, hasRemark: !!(c.remark && c.remark.trim()) });
+    }
+  }
 
-      if(Math.abs(ratio-1000)<5&&ms>0){
-        // 元/千元混填
-        ue.push({cn:cn,nm:nm,budget:budget,ms:ms});
-      } else if(allZ&&budget>0){
-        be.push({cn:cn,nm:nm,budget:budget,ms:0,diff:-budget,type:'月分配全為0'});
-      } else if(Math.abs(diff)>0.5){
-        be.push({cn:cn,nm:nm,budget:budget,ms:ms,diff:diff,type:diff>0?'超出預算':'分配不足'});
+  // 3. 預算加總 (1) = (2) + (3)
+  let budgetMismatch = [];
+  for(let c of cases){
+    if(c.budget > 0){
+      let sum = (c.central||0) + (c.county||0);
+      if(Math.abs(c.budget - sum) > 0.5){
+        budgetMismatch.push({ cn:c.cn, nm:c.nm, budget:c.budget, central:c.central||0, county:c.county||0, diff:c.budget - sum });
       }
     }
-
-    /* Missing fields */
-    var miss=[];
-    if(!decided&&!isEx(decided)&&!isEx(remark))miss.push('預計決標日');
-    if(!start  &&!isEx(start)  &&!isEx(remark))miss.push('預計開工日');
-    if(!dur    &&!isEx(dur)    &&!isEx(remark))miss.push('履約期間');
-    if(miss.length)me.push({cn:cn,nm:nm,miss:miss});
   }
 
-  if(!unitName)unitName=guessName(fn);
-  return{fn:fn,unit:unitName,sheet:shName,parseErr:null,
-         cases:cases,be:be,me:me,de:de,ue:ue};
+  // 4. 月分配合計必須等於本年度預算數
+  let monthlyMismatch = [];
+  for(let c of cases){
+    if(c.budget === 0) continue;
+    let diff = c.monthlySum - c.budget;
+    let allZero = c.monthly.every(v => v === 0);
+    if(Math.abs(diff) > 0.5){
+      monthlyMismatch.push({ cn:c.cn, nm:c.nm, budget:c.budget, monthlySum:c.monthlySum, diff, type: diff>0 ? '超出預算' : '分配不足', allZero });
+    }
+  }
+
+  // 5. 元/千元混填 (月分配加總 ≈ 預算×1000)
+  let unitErr = [];
+  for(let c of cases){
+    if(c.budget > 0 && c.monthlySum > 0){
+      let ratio = c.monthlySum / c.budget;
+      if(Math.abs(ratio - 1000) < 5 && c.monthlySum > c.budget*500){
+        unitErr.push({ cn:c.cn, nm:c.nm, budget:c.budget, monthlySum:c.monthlySum });
+      }
+    }
+  }
+
+  // 備註說明中的項目: 凡 missingMust 裡有備註但豁免關鍵字未完全覆蓋 (指有remark但還是缺漏) 且無關鍵字豁免 -> 統計用
+  let remarkWarn = missingMust.filter(m => m.hasRemark && !hasRemarkExemption(m.remark)).length;
+
+  return { fn, unit:unitName, sheet:chosen, parseErr:null, cases,
+           seqErr: seqErrors,
+           missingMust: missingMust,      // 必須修正的清單(未填且無豁免)
+           budgetMismatch, monthlyMismatch, unitErr,
+           de, remarkWarn };
 }
 
-function colMap(hdrs){
-  var m={mb:14,idx:null,name:null,unit:null,bud:null,dec:null,st:null,dur:null,rem:null};
-  hdrs.forEach(function(h,i){
-    var s=h?String(h):'';
-    if(s.includes('單位')&&!s.includes('計'))m.unit=i;
-    if(s.includes('項次'))m.idx=i;
-    if(s.includes('計畫名稱'))m.name=i;
-    if(s.includes('本年度預算數(1)'))m.bud=i;
-    if(s.includes('預計決標日'))m.dec=i;
-    if(s.includes('預計開工日'))m.st=i;
-    if(s.includes('履約期間'))m.dur=i;
-    if(s.includes('備註'))m.rem=i;
-    if(s.includes('分配數1月')&&m.mb===14)m.mb=i;
+function buildColMap(hdrs){
+  let m = { mb:14, idx:null, name:null, unit:null, budget:null, central:null, county:null, decided:null, start:null, duration:null, remark:null };
+  hdrs.forEach((h,i)=>{
+    let s = h ? String(h) : '';
+    if(s.includes('單位') && !s.includes('計')) m.unit = i;
+    if(s.includes('項次')) m.idx = i;
+    if(s.includes('計畫名稱')) m.name = i;
+    if(s.includes('本年度預算數(1)')) m.budget = i;
+    if(s.includes('央款') && s.includes('(2)')) m.central = i;
+    if(s.includes('縣款') && s.includes('(3)')) m.county = i;
+    if(s.includes('預計決標日')) m.decided = i;
+    if(s.includes('預計開工日')) m.start = i;
+    if(s.includes('履約期間')) m.duration = i;
+    if(s.includes('備註')) m.remark = i;
+    if(s.includes('分配數1月')) m.mb = i;
   });
   return m;
 }
+function nzStr(row, col){ let v = (col!==undefined && Array.isArray(row)) ? row[col] : row; if(v===null||v===undefined) return ''; let s=String(v).trim(); return (s===''||s==='null')?'':s; }
+function numVal(row,col){ if(col===undefined||col===null) return 0; let v=Array.isArray(row)?row[col]:null; if(v===null||v===undefined) return 0; let n=parseFloat(String(v).replace(/,/g,'')); return isNaN(n)?0:n; }
+function guessName(fn){ return fn.replace(/\.ods$/i,'').replace(/^\d+[._-]/,'').replace(/OK$/i,'').replace(/ok$/i,'').trim(); }
 
-function nzStr(rowOrVal,col){
-  var v=(col!==undefined&&col!==null&&Array.isArray(rowOrVal))?rowOrVal[col]:rowOrVal;
-  if(v===null||v===undefined)return'';
-  var s=String(v).trim();return(s===''||s==='null')?'':s;
-}
-function numVal(row,col){
-  if(col===undefined||col===null)return 0;
-  var v=Array.isArray(row)?row[col]:null;
-  if(v===null||v===undefined)return 0;
-  var n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;
-}
-function guessName(fn){return fn.replace(/\.ods$/i,'').replace(/^\d+_/,'').replace(/OK$/i,'').trim();}
-
-/* ═══════════════════════════════════════════════
+/* ──────────────────────────────────────────────────────────
    RENDER
-═══════════════════════════════════════════════ */
+────────────────────────────────────────────────────────── */
 function render(){
-  g('res').style.display='block';
-  var tC=0,tB=0,tM=0,tD=0,tU=0,nOk=0,nErr=0;
-  ALL.forEach(function(r){
-    tC+=r.cases.length;tB+=r.be.length;tM+=r.me.length;tD+=r.de;tU+=r.ue.length;
-    (r.be.length+r.me.length+r.ue.length+(r.parseErr?1:0))?nErr++:nOk++;
+  document.getElementById('res').style.display = 'block';
+  let totalCases=0, totalMust=0, totalUnitErr=0, totalRemarkNote=0, totalDiv=0, perfectUnit=0;
+  ALL.forEach(r=>{
+    totalCases += r.cases.length;
+    let mustCount = (r.seqErr?1:0) + r.missingMust.length + r.budgetMismatch.length + r.monthlyMismatch.length + r.unitErr.length;
+    totalMust += mustCount;
+    totalUnitErr += r.unitErr.length;
+    totalRemarkNote += r.remarkWarn;
+    totalDiv += r.de;
+    if(mustCount===0) perfectUnit++;
   });
-  ALL.sort(function(a,b){
-    var ea=a.be.length+a.me.length+a.ue.length+(a.parseErr?10:0);
-    var eb=b.be.length+b.me.length+b.ue.length+(b.parseErr?10:0);
-    return eb-ea;
-  });
-  setText('sU',ALL.length);setText('sC',tC);setText('sB',tB);
-  setText('sU2',tU);setText('sM',tM);setText('sD',tD);setText('sOK',nOk);
-  setText('eBadge',nErr+' 個單位有問題');setText('okBadge',nOk+' 個單位通過');
-  var html='';ALL.forEach(function(r,i){html+=cardHtml(r,i);});
-  g('cards').innerHTML=html;
+  document.getElementById('sU').innerText = ALL.length;
+  document.getElementById('sC').innerText = totalCases;
+  document.getElementById('sMust').innerText = totalMust;
+  document.getElementById('sU2').innerText = totalUnitErr;
+  document.getElementById('sRemarkNote').innerText = totalRemarkNote;
+  document.getElementById('sD').innerText = totalDiv;
+  document.getElementById('sOK').innerText = perfectUnit;
+  document.getElementById('eBadge').innerText = (ALL.length - perfectUnit) + ' 個單位有問題';
+  document.getElementById('okBadge').innerText = perfectUnit + ' 個單位通過';
+
+  ALL.sort((a,b)=> (b.missingMust.length+b.budgetMismatch.length) - (a.missingMust.length+a.budgetMismatch.length));
+  let html='';
+  ALL.forEach((r,i)=> html+=cardHtml(r,i));
+  document.getElementById('cards').innerHTML = html;
 }
 
 function cardHtml(r,i){
-  var hasErr=r.be.length+r.me.length+r.ue.length+(r.parseErr?1:0);
-  var cls=!hasErr?'ok':((r.me.length&&!r.be.length&&!r.ue.length&&!r.parseErr)?'warn':'err');
-  var tags='';
-  if(r.parseErr)   tags+='<span class="tag red">解析失敗</span>';
-  if(r.ue.length)  tags+='<span class="tag purple">元/千元×'+r.ue.length+'</span>';
-  if(r.be.length)  tags+='<span class="tag red">月分配×'+r.be.length+'</span>';
-  if(r.me.length)  tags+='<span class="tag amber">缺填×'+r.me.length+'</span>';
-  if(r.de>0)       tags+='<span class="tag blue">#DIV/0!×'+r.de+'</span>';
-  if(!hasErr)      tags+='<span class="tag green">✓ 全部通過</span>';
+  let hasErr = (r.seqErr?1:0) + r.missingMust.length + r.budgetMismatch.length + r.monthlyMismatch.length + r.unitErr.length > 0;
+  let cls = hasErr ? 'err' : 'ok';
+  let tags = '';
+  if(r.parseErr) tags+='<span class="tag red">解析失敗</span>';
+  if(r.seqErr) tags+='<span class="tag red">項次不連續</span>';
+  if(r.missingMust.length) tags+=`<span class="tag red">必須修正×${r.missingMust.length}</span>`;
+  if(r.budgetMismatch.length) tags+=`<span class="tag red">預算加總×${r.budgetMismatch.length}</span>`;
+  if(r.monthlyMismatch.length) tags+=`<span class="tag red">月分配不符×${r.monthlyMismatch.length}</span>`;
+  if(r.unitErr.length) tags+=`<span class="tag purple">元/千元×${r.unitErr.length}</span>`;
+  if(r.de>0) tags+=`<span class="tag blue">#DIV/0!×${r.de}</span>`;
+  if(!hasErr && !r.parseErr) tags+='<span class="tag green">✓ 全部通過</span>';
 
-  var body='';
-  if(r.parseErr){
-    body='<div style="color:var(--red);padding:10px 0;font-size:13px">⚠ 解析錯誤：'+esc(r.parseErr)+'</div>';
-  } else if(!hasErr){
-    body='<div class="ok-box">✅ 本單位 '+r.cases.length+' 案資料均通過檢核，無錯誤。</div>';
-  } else {
-
-    /* 元/千元混填 */
-    if(r.ue.length){
-      body+='<div class="eg"><div class="eg-ttl purple">🔴 疑似「元/千元」填報錯誤（'+r.ue.length+' 案）— 月分配加總 ≈ 預算數 × 1,000</div>';
-      body+=buildTable(
-        ['案次','計畫名稱','本年度預算(千元)','月分配加總(實填)','倍率'],
-        r.ue.map(function(e){
-          return '<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td>'
-            +'<td>'+esc(trunc(e.nm,36))+'</td>'
-            +'<td class="mn">'+fmt(e.budget)+'</td>'
-            +'<td class="mn" style="color:var(--purple)">'+fmt(e.ms)+'</td>'
-            +'<td><span class="pill pu">×1000</span></td></tr>';
-        })
-      );
-      body+='<div class="note">👉 月分配欄位單位為「千元」，請將各月填入數值除以 1,000 後重新填報。</div></div>';
-    }
-
-    /* 月分配不符 */
-    if(r.be.length){
-      body+='<div class="eg"><div class="eg-ttl red">⚠ 月分配合計 ≠ 本年度預算數（'+r.be.length+' 筆）</div>';
-      body+=buildTable(
-        ['案次','計畫名稱','本年度預算(千元)','月分配合計','差額','類型'],
-        r.be.map(function(e){
-          var dc=e.diff>0?'pos':'neg';
-          return '<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td>'
-            +'<td>'+esc(trunc(e.nm,36))+'</td>'
-            +'<td class="mn">'+fmt(e.budget)+'</td>'
-            +'<td class="mn" style="color:'+(e.ms===0?'var(--amber)':'inherit')+'">'+fmt(e.ms)+'</td>'
-            +'<td><span class="pill '+dc+'">'+(e.diff>0?'+':'')+fmt(e.diff)+'</span></td>'
-            +'<td style="font-size:11px">'+esc(e.type)+'</td></tr>';
-        })
-      );
-      body+='</div>';
-    }
-
-    /* 必填缺漏 */
-    if(r.me.length){
-      body+='<div class="eg"><div class="eg-ttl amber">⚠ 必填欄位缺漏（'+r.me.length+' 案）</div>';
-      body+=buildTable(
-        ['案次','計畫名稱','缺漏欄位（黃底必填）'],
-        r.me.map(function(e){
-          return '<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td>'
-            +'<td>'+esc(trunc(e.nm,36))+'</td>'
-            +'<td>'+e.miss.map(function(m){return'<span class="mb">'+esc(m)+'</span>';}).join('')+'</td></tr>';
-        })
-      );
-      body+='<div class="note">👉 若屬補助款不需發包、規劃設計案等情形，可於備註欄填寫說明，系統將自動豁免驗證。</div></div>';
-    }
-
-    /* DIV/0! */
-    if(r.de>0){
-      body+='<div class="eg"><div class="eg-ttl blue">ℹ #DIV/0! 錯誤統計（'+r.de+' 格）</div>'
-        +'<div class="note">共偵測到 <strong style="color:var(--accent)">'+r.de+'</strong> 個 #DIV/0! 錯誤儲存格，'
-        +'通常出現於表三「累計分配預算數」欄位尚未填入。<br>'
-        +'請確認各案是否為正常等待撥付狀態；已撥付者請補填數據。</div></div>';
-    }
-  }
-
-  return '<div class="uc '+cls+'" id="uc'+i+'">'
-    +'<div class="uc-hdr" onclick="tog('+i+')">'
-    +'<div><div class="uc-name">'+esc(r.unit)+'</div>'
-    +'<div class="uc-meta">工作表：'+esc(r.sheet)+' ｜ '+esc(r.fn)+' ｜ 共 '+r.cases.length+' 案</div></div>'
-    +'<div class="uc-tags">'+tags+'</div>'
-    +'<span class="chev'+(hasErr?' open':'')+'" id="ch'+i+'">▶</span>'
-    +'</div>'
-    +'<div class="uc-body'+(hasErr?' open':'')+'" id="bd'+i+'">'
-    +body
-    +(r.cases.length?'<button class="btn-s" style="margin-top:13px" onclick="exportOne('+i+')">📥 匯出本單位 HTML 報告</button>':'')
-    +'</div></div>';
-}
-
-function tog(i){g('bd'+i).classList.toggle('open');g('ch'+i).classList.toggle('open');}
-
-function buildTable(cols,rows){
-  return '<table><thead><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'
-    +rows.join('')+'</tbody></table>';
-}
-
-/* ═══════════════════════════════════════════════
-   EXPORT
-═══════════════════════════════════════════════ */
-function exportOne(i){var r=ALL[i];dl(buildReport(r),r.unit+'_檢核報告.html');}
-function exportAll(){ALL.forEach(function(r,i){setTimeout(function(){dl(buildReport(r),r.unit+'_檢核報告.html');},i*320);});}
-
-function buildReport(r){
-  var now=new Date().toLocaleString('zh-TW');
-  var ue=r.ue||[],be=r.be||[],me=r.me||[],de=r.de||0;
-  var hasErr=be.length+me.length+ue.length+(r.parseErr?1:0);
-
-  function tbl(cols,rows){
-    return '<table><thead><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';
-  }
-
-  var body='';
-  if(r.parseErr)body='<div class="box red">⚠ 解析錯誤：'+esc(r.parseErr)+'</div>';
-  else if(!hasErr)body='<div class="box green">✅ 本單位所有計畫案資料均通過檢核，無錯誤，感謝配合！</div>';
+  let body = '';
+  if(r.parseErr){ body=`<div style="color:var(--red);padding:10px">⚠ 解析錯誤：${esc(r.parseErr)}</div>`; }
+  else if(!hasErr){ body='<div class="ok-box">✅ 本單位完全通過檢核 (項次連續、三欄必填、預算平衡且月分配正確)</div>'; }
   else {
-    if(ue.length){
-      body+='<h3 class="rh">🔴 疑似「元/千元」填報錯誤（'+ue.length+' 案）</h3>'
-        +'<div class="note" style="color:#7b1fa2;background:#f3e5f5;border:1px solid #ce93d8">月分配欄位單位為「千元」，以下案件月分配加總約為預算數的 1,000 倍。<br>請將各月填入數值除以 1,000 後重新填報，謝謝。</div>'
-        +tbl(['案次','計畫名稱','本年度預算(千元)','月分配加總(實填)','倍率'],
-          ue.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td align="right">'+fmt(e.budget)+'</td><td align="right" style="color:#7b1fa2"><b>'+fmt(e.ms)+'</b></td><td align="center" style="color:#7b1fa2">×1000</td></tr>';}));
-    }
-    if(be.length){
-      body+='<h3 class="rh">⚠ 月分配合計 ≠ 本年度預算數（'+be.length+' 筆）</h3>'
-        +tbl(['案次','計畫名稱','本年度預算(千元)','月分配合計','差額','類型'],
-          be.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td align="right">'+fmt(e.budget)+'</td><td align="right" style="color:'+(e.ms===0?'#e65100':'inherit')+'">'+fmt(e.ms)+'</td><td align="right" style="color:'+(e.diff>0?'#c62828':'#bf360c')+'"><b>'+(e.diff>0?'+':'')+fmt(e.diff)+'</b></td><td>'+esc(e.type)+'</td></tr>';}));
-    }
-    if(me.length){
-      body+='<h3 class="ah">⚠ 必填欄位缺漏（'+me.length+' 案）</h3>'
-        +'<div class="note">若屬補助款不需發包、規劃設計案等情形，請於備註欄填寫說明。</div>'
-        +tbl(['案次','計畫名稱','缺漏欄位（黃底必填）'],
-          me.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td>'+e.miss.map(function(m){return'<span class="tm">'+esc(m)+'</span>';}).join('')+'</td></tr>';}));
-    }
-    if(de>0)body+='<h3 style="color:#1565c0;margin-top:24px">ℹ #DIV/0! 統計（'+de+' 格）</h3><div class="note" style="background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9">共偵測到 <b>'+de+'</b> 個 #DIV/0! 錯誤格（通常為表三「累計分配預算數」尚未填入）。<br>請確認是否為等待撥付狀態；已撥付者請補填後回傳。</div>';
+    if(r.seqErr) body+=`<div class="eg"><div class="eg-ttl red">🔴 必須修正：項次順序錯誤</div><div class="note red">實際項次：[${r.seqErr.found.join(', ')}] 期望項次：[${r.seqErr.expected.join(', ')}]</div></div>`;
+    if(r.missingMust.length) body+=`<div class="eg"><div class="eg-ttl red">🔴 必須修正：主計畫欄位未填 (決標日/開工日/履約期間) 且備註未提供充分豁免說明</div>`+ buildTable(['案次','計畫名稱','缺漏欄位','備註現況'], r.missingMust.map(m => `<tr><td class="cn">${esc(m.cn)}</td><td>${esc(trunc(m.nm,30))}</td><td>${m.miss.map(f=>`<span class="mb">${esc(f)}</span>`).join('')}</td><td>${esc(m.remark||'')}</td>`)) + `<div class="note">👉 若屬補助款不需發包、規劃設計案等，請於備註欄明確說明關鍵字，否則視為必須修正。</div></div>`;
+    if(r.budgetMismatch.length) body+=`<div class="eg"><div class="eg-ttl red">🔴 必須修正：預算(1) ≠ 央款(2) + 縣款(3)</div>`+ buildTable(['案次','計畫名稱','預算數(1)','央款(2)','縣款(3)','差額'], r.budgetMismatch.map(b=>`<td><td class="cn">${esc(b.cn)}</td><td>${esc(trunc(b.nm,30))}</td><td class="mn">${fmt(b.budget)}</td><td class="mn">${fmt(b.central)}</td><td class="mn">${fmt(b.county)}</td><td class="pill ${b.diff>0?'pos':'neg'}">${b.diff>0?'+':''}${fmt(b.diff)}</td>`)) +`</div>`;
+    if(r.monthlyMismatch.length) body+=`<div class="eg"><div class="eg-ttl red">🔴 必須修正：月分配合計 ≠ 本年度預算數</div>`+ buildTable(['案次','計畫名稱','預算數','月分配合計','差額'], r.monthlyMismatch.map(m=>`<tr><td class="cn">${esc(m.cn)}</td><td>${esc(trunc(m.nm,30))}</td><td class="mn">${fmt(m.budget)}</td><td class="mn">${fmt(m.monthlySum)}</td><td class="pill ${m.diff>0?'pos':'neg'}">${m.diff>0?'+':''}${fmt(m.diff)}</td>`)) +`</div>`;
+    if(r.unitErr.length) body+=`<div class="eg"><div class="eg-ttl purple">🟣 可能元/千元混填</div>`+ buildTable(['案次','計畫名稱','預算數(千元)','月分配加總','倍率'], r.unitErr.map(u=>`<tr><td class="cn">${esc(u.cn)}</td><td>${esc(u.nm)}</td><td class="mn">${fmt(u.budget)}</td><td class="mn">${fmt(u.monthlySum)}</td><td class="pill pu">×1000</td>`)) + `<div class="note">👉 分配數單位為「千元」，請將數值 ÷1000 後重填。</div></div>`;
   }
+  let open = hasErr;
+  return `<div class="uc ${cls}" id="uc${i}"><div class="uc-hdr" onclick="window.togCard(${i})"><div><div class="uc-name">${esc(r.unit)}</div><div class="uc-meta">工作表：${esc(r.sheet)} ｜ ${esc(r.fn)} ｜ 共 ${r.cases.length} 案</div></div><div class="uc-tags">${tags}</div><span class="chev${open?' open':''}" id="ch${i}">▶</span></div><div class="uc-body${open?' open':''}" id="bd${i}">${body}${r.cases.length?'<button class="btn-s" style="margin-top:13px" onclick="exportOne('+i+')">📥 匯出本單位 HTML 報告</button>':''}</div></div>`;
+}
+window.togCard = function(i){
+  document.getElementById('bd'+i).classList.toggle('open');
+  document.getElementById('ch'+i).classList.toggle('open');
+};
+function buildTable(cols, rows){ return `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`; }
 
-  return'<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(r.unit)+'－資本門計畫檢核報告</title>'
-    +'<style>body{font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;max-width:980px;margin:0 auto;padding:32px 24px 60px;background:#fafafa;color:#1a1a2e}'
-    +'h1{color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:10px;margin-bottom:0}'
-    +'.meta{background:#e3f2fd;border-radius:8px;padding:14px 18px;margin:16px 0 24px;font-size:13px;color:#0d47a1;line-height:1.8}'
-    +'.box{border-radius:8px;padding:14px 18px;font-size:14px;font-weight:600;margin:16px 0}'
-    +'.box.green{background:#e8f5e9;border:2px solid #4caf50;color:#1b5e20}'
-    +'.box.red{background:#ffebee;border:2px solid #f44336;color:#c62828}'
-    +'.rh{color:#c62828;margin:28px 0 10px}.ah{color:#e65100;margin:28px 0 10px}'
-    +'.note{background:#f5f5f5;border-radius:6px;padding:8px 12px;font-size:12px;margin:8px 0 10px;line-height:1.6}'
-    +'table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}'
-    +'th{background:#e8eaf6;color:#283593;padding:8px 11px;text-align:left;border:1px solid #c5cae9}'
-    +'td{padding:7px 11px;border:1px solid #e0e0e0;vertical-align:top}'
-    +'tr:nth-child(even)td{background:#f5f5f5}'
-    +'.tm{background:#fff3e0;border:1px solid #e65100;color:#e65100;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block}'
-    +'hr{margin:40px 0;border:none;border-top:1px solid #e0e0e0}'
-    +'footer{font-size:11px;color:#9e9e9e}'
-    +'</style></head><body>'
-    +'<h1>📋 114年度資本門計畫 · 資料檢核報告</h1>'
-    +'<div class="meta">報告對象：<strong>'+esc(r.unit)+'</strong><br>'
-    +'來源檔案：'+esc(r.fn)+'　｜　使用工作表：'+esc(r.sheet)+'<br>'
-    +'計畫案數：<strong>'+r.cases.length+'</strong>　｜　報告產生時間：'+now+'</div>'
-    +body
-    +'<hr><footer>本報告由宜蘭縣政府資本門計畫檢核系統自動產生 ｜ '+now+'</footer>'
-    +'</body></html>';
-}
-
-function exportCSV(){
-  var rows=['\uFEFF單位,案次,計畫名稱,錯誤類型,說明'];
-  ALL.forEach(function(r){
-    if(r.parseErr){rows.push([r.unit,'','','解析失敗',r.parseErr].map(ce).join(','));return;}
-    r.ue.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','元/千元混填','月合計=預算×1000，請各月填入值÷1000重填'].map(ce).join(','));});
-    r.be.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','月分配不符',e.type+'　預算'+e.budget+'千元　合計'+e.ms+'千元　差額'+e.diff].map(ce).join(','));});
-    r.me.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','必填缺漏',e.miss.join('、')].map(ce).join(','));});
-    if(!r.ue.length&&!r.be.length&&!r.me.length)rows.push([r.unit,'','','全部通過',''].map(ce).join(','));
-  });
-  dl(rows.join('\n'),'資本門計畫檢核_錯誤清單.csv','text/csv;charset=utf-8');
-}
-
-/* ═══════════════════════════════════════════════
-   UTILS
-═══════════════════════════════════════════════ */
-function g(id){return document.getElementById(id);}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function ce(s){s=String(s||'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
-function fmt(n){return Number(n||0).toLocaleString('zh-TW');}
-function trunc(s,n){s=String(s||'');return s.length>n?s.substr(0,n)+'…':s;}
-function setText(id,v){var el=g(id);if(el)el.textContent=v;}
-function dl(content,name,type){
-  var blob=new Blob([content],{type:type||'text/html;charset=utf-8'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');a.href=url;a.download=name;
-  document.body.appendChild(a);a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
-}
-function clearAll(){
-  ALL=[];g('res').style.display='none';g('fi').value='';g('cards').innerHTML='';
-}
+/* 匯出函數 (保留原有架構) */
+function exportOne(i){ let r=ALL[i]; dl(buildFullReport(r), r.unit+'_檢核報告.html'); }
+function exportAll(){ ALL.forEach((r,i)=>setTimeout(()=>dl(buildFullReport(r), r.unit+'_檢核報告.html'), i*350)); }
+function buildFullReport(r){ /* 維持完整風格簡化但包含所有錯誤明細 */ let now=new Date().toLocaleString('zh-TW'); let body=''; if(r.parseErr) body='<div class="box red">解析錯誤</div>'; else { if(r.seqErr) body+=`<h3>項次錯誤</h3><pre>實際:${r.seqErr.found.join(',')} 期望:${r.seqErr.expected.join(',')}</pre>`; if(r.missingMust.length) body+=`<h3>必須修正 (決標日/開工日/履約期間)</h3>${tableHtml(['案次','缺漏欄位'], r.missingMust.map(m=>`<td>${m.cn}</td><td>${m.miss.join(',')}</td>`))}`; if(r.budgetMismatch.length) body+=`<h3>預算加總不符</h3>${tableHtml(['案次','預算(1)','央款(2)','縣款(3)'], r.budgetMismatch.map(b=>`<td>${b.cn}</td><td>${b.budget}</td><td>${b.central}</td><td>${b.county}</td>`))}`; if(r.monthlyMismatch.length) body+=`<h3>月分配不符</h3>${tableHtml(['案次','預算','月合計','差額'], r.monthlyMismatch.map(m=>`<td>${m.cn}</td><td>${m.budget}</td><td>${m.monthlySum}</td><td>${m.diff}</td>`))}`; if(r.unitErr.length) body+=`<h3>元/千元混填</h3>${tableHtml(['案次','預算','月合計'], r.unitErr.map(u=>`<td>${u.cn}</td><td>${u.budget}</td><td>${u.monthlySum}</td>`))}`; } return `<!DOCTYPE html><html><head><meta charset=UTF-8><title>${esc(r.unit)} 檢核報告</title><style>body{font-family:sans-serif;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:6px}</style></head><body><h1>${esc(r.unit)} 資本門檢核報告</h1><p>產生時間:${now}</p>${body}<hr><p>本報告由宜蘭縣政府資本門系統產出</p></body></html>`; }
+function tableHtml(cols,rows){ return `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody><tr>${rows.join('</tr><tr>')}</tr></tbody></table>`; }
+function exportCSV(){ let rows=['\uFEFF單位,案次,錯誤類型,說明']; ALL.forEach(r=>{ r.missingMust.forEach(m=>rows.push([r.unit,m.cn,'必須修正欄位缺漏',`缺漏:${m.miss.join(',')} 備註:${m.remark||''}`].map(ce).join(','))); r.budgetMismatch.forEach(b=>rows.push([r.unit,b.cn,'預算加總不符',`預算=${b.budget} 央款+縣款=${b.central+b.county}`].map(ce).join(','))); r.monthlyMismatch.forEach(mm=>rows.push([r.unit,mm.cn,'月分配不符',`預算=${mm.budget} 分配總和=${mm.monthlySum}`].map(ce).join(','))); r.unitErr.forEach(u=>rows.push([r.unit,u.cn,'元/千元混填',`請將月分配數值÷1000`].map(ce).join(','))); if(r.seqErr) rows.push([r.unit,'','項次不連續',`實際項次序列異常`].map(ce).join(',')); }); dl(rows.join('\n'),'必須修正清單.csv','text/csv;charset=utf-8'); }
+function dl(c,n,t){ let b=new Blob([c],{type:t||'text/html'}); let a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=n; document.body.appendChild(a); a.click(); setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(a.href); },150); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ce(s){ s=String(s||''); return (s.includes(',')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s; }
+function fmt(n){ return Number(n||0).toLocaleString('zh-TW'); }
+function trunc(s,n){ s=String(s||''); return s.length>n?s.substr(0,n)+'…':s; }
+function clearAll(){ ALL=[]; document.getElementById('res').style.display='none'; document.getElementById('fi').value=''; document.getElementById('cards').innerHTML=''; }
 </script>
 </body>
 </html>
