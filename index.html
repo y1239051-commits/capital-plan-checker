@@ -1,1 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宜蘭縣政府 · 114年度資本門計畫 · 資料檢核系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;
+  --border:#30363d;--border2:#21262d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --red:#f85149;--red-dim:#da363029;--red-bg:#da363014;
+  --amber:#d29922;--amber-dim:#d2992229;--amber-bg:#d2992214;
+  --green:#3fb950;--green-dim:#3fb95020;--green-bg:#1a3a1e;
+  --blue:#388bfd;--blue-dim:#388bfd20;
+  --purple:#bc8cff;--purple-dim:#bc8cff20;
+  --accent:#58a6ff;--grey-dim:#ffffff10;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',-apple-system,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,#388bfd,#bc8cff);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;flex-shrink:0}
+.hdr h1{font-size:15px;font-weight:700}
+.hdr p{font-size:11px;color:var(--text2)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hdr-badge{background:var(--blue-dim);border:1px solid rgba(88,166,255,.4);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.gh-status-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.gh-status-dot.ok{background:var(--green)}
+.gh-status-dot.err{background:var(--red)}
+
+/* WRAP */
+.wrap{max-width:1100px;margin:0 auto;padding:22px 20px 60px}
+
+/* ALERT */
+.alert{display:none;background:var(--amber-bg);border:1px solid var(--amber);border-radius:8px;padding:11px 16px;font-size:13px;color:var(--amber);margin-bottom:16px}
+.alert.show{display:block}
+
+/* GITHUB SETTINGS */
+.gh-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.gh-panel summary{list-style:none;padding:13px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;font-weight:600;font-size:13px;color:var(--text2)}
+.gh-panel summary:hover{color:var(--text)}
+.gh-panel summary::before{content:'▶';font-size:10px;transition:transform .2s;flex-shrink:0}
+.gh-panel[open] summary::before{transform:rotate(90deg)}
+.gh-panel[open] summary{color:var(--text);border-bottom:1px solid var(--border)}
+.gh-body{padding:16px 18px;display:grid;grid-template-columns:repeat(3,1fr) auto;gap:10px;align-items:end}
+.gh-body label{font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:5px}
+.gh-body input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;font-family:inherit}
+.gh-body input:focus{outline:none;border-color:var(--accent)}
+.gh-body input[type=password]{font-family:'JetBrains Mono',monospace}
+.gh-save{background:var(--accent);color:#000;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;height:34px;margin-top:18px}
+.gh-save:hover{opacity:.88}
+.gh-note{grid-column:1/-1;font-size:11px;color:var(--text3);padding:6px 0 0}
+
+/* DASHBOARD */
+.db{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.db-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.db-hdr h2{font-size:14px;font-weight:700}
+.db-prog-wrap{margin-left:auto;display:flex;align-items:center;gap:10px}
+.db-prog-bar{width:160px;height:7px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.db-prog-fill{height:100%;background:linear-gradient(90deg,#3fb950,#58a6ff);border-radius:4px;transition:width .4s}
+.db-prog-txt{font-size:12px;color:var(--text2);white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.db-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.db-col{padding:14px 16px;border-right:1px solid var(--border)}
+.db-col:last-child{border-right:none}
+.db-col-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.db-col-hdr .cnt{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:900;margin-left:auto}
+.db-col.col-ok .db-col-hdr{color:var(--green)}
+.db-col.col-ok .cnt{color:var(--green)}
+.db-col.col-fail .db-col-hdr{color:var(--red)}
+.db-col.col-fail .cnt{color:var(--red)}
+.db-col.col-pend .db-col-hdr{color:var(--text3)}
+.db-col.col-pend .cnt{color:var(--text3)}
+.db-chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;cursor:default;transition:opacity .15s}
+.chip.ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.chip.fail{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.3);cursor:pointer}
+.chip.fail:hover{opacity:.75}
+.chip.pend{background:var(--grey-dim);color:var(--text3);border:1px solid var(--border2)}
+.chip-gh{font-size:9px;opacity:.8}
+
+/* DROP ZONE */
+.dz{border:2px dashed var(--border);border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;position:relative}
+.dz:hover,.dz.over{border-color:var(--accent);background:rgba(88,166,255,.05)}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-ico{font-size:32px;margin-bottom:8px}
+.dz h2{font-size:16px;font-weight:700;margin-bottom:4px}
+.dz p{font-size:12px;color:var(--text2)}
+.dz small{font-size:11px;color:var(--text3);margin-top:8px;display:block}
+.dz.has-files{padding:18px 20px}
+.dz.has-files h2{font-size:14px}
+
+/* PROGRESS BAR */
+.pgwrap{display:none;margin-bottom:14px}
+.pgwrap.show{display:block}
+.pglbl{font-size:12px;color:var(--text2);margin-bottom:6px}
+.pgbar{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.pgfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:2px;transition:width .2s;width:0}
+
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:13px 15px}
+.stat-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:4px}
+.stat-val{font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.s-blue .stat-val{color:var(--accent)} .s-red .stat-val{color:var(--red)}
+.s-amber .stat-val{color:var(--amber)} .s-green .stat-val{color:var(--green)}
+.s-purple .stat-val{color:var(--purple)}
+
+/* ACTION BAR */
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.btn-p{background:var(--accent);color:#000;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-p:hover{opacity:.88}
+.btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer}
+.btn-s:hover{border-color:var(--accent);color:var(--accent)}
+
+/* RESULT CARDS */
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sec-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sec-hdr h2{font-size:14px;font-weight:700}
+.badge{padding:3px 10px;border-radius:10px;font-size:10.5px;font-weight:600}
+.badge.red{background:var(--red-dim);color:var(--red)} .badge.green{background:var(--green-dim);color:var(--green)}
+.uc{border-bottom:1px solid var(--border2)}
+.uc:last-child{border-bottom:none}
+.uc.ok .uc-hdr{border-left:3px solid var(--green)}
+.uc.err .uc-hdr{border-left:3px solid var(--red)}
+.uc.warn .uc-hdr{border-left:3px solid var(--amber)}
+.uc-hdr{padding:13px 17px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s}
+.uc-hdr:hover{background:var(--surface2)}
+.uc-name{font-weight:700;font-size:14px}
+.uc-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.uc-tags{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.tag{padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',monospace;border:1px solid}
+.tag.red{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+.tag.amber{background:var(--amber-dim);color:var(--amber);border-color:var(--amber)}
+.tag.purple{background:var(--purple-dim);color:var(--purple);border-color:var(--purple)}
+.tag.green{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.tag.blue{background:var(--blue-dim);color:var(--accent);border-color:var(--accent)}
+.tag.grey{background:var(--grey-dim);color:var(--text3);border-color:var(--border)}
+.chev{color:var(--text3);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:3px}
+.chev.open{transform:rotate(90deg)}
+.uc-body{display:none;padding:0 17px 17px}
+.uc-body.open{display:block}
+.eg{margin-top:17px}
+.eg-ttl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:5px 9px;border-radius:5px;margin-bottom:9px}
+.eg-ttl.red{background:var(--red-bg);color:var(--red)}
+.eg-ttl.amber{background:var(--amber-bg);color:var(--amber)}
+.eg-ttl.blue{background:var(--blue-dim);color:var(--accent)}
+.eg-ttl.purple{background:var(--purple-dim);color:var(--purple)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--surface2);color:var(--text2);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:7px 10px;border-bottom:1px solid var(--border2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.cn{font-family:'JetBrains Mono',monospace;font-weight:600;background:var(--surface2);border:1px solid var(--border);padding:1px 6px;border-radius:4px;white-space:nowrap;display:inline-block;font-size:11px}
+.mn{font-family:'JetBrains Mono',monospace}
+.pill{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:2px 7px;border-radius:8px;display:inline-block}
+.pill.neg{background:var(--red-dim);color:var(--red)} .pill.pos{background:var(--amber-dim);color:var(--amber)} .pill.pu{background:var(--purple-dim);color:var(--purple)}
+.mb{display:inline-block;padding:2px 7px;border-radius:4px;margin:2px;font-size:10.5px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber)}
+.ok-box{background:var(--green-dim);border:1px solid var(--green);border-radius:7px;padding:10px 13px;color:var(--green);font-weight:600;font-size:12.5px;margin-top:7px}
+.note{font-size:11px;color:var(--text3);padding:7px 9px;background:var(--surface2);border-radius:5px;margin-top:7px;line-height:1.5}
+.gh-uploading{font-size:11px;color:var(--amber);display:flex;align-items:center;gap:5px;margin-top:8px}
+.gh-done{font-size:11px;color:var(--green);margin-top:8px}
+.gh-fail{font-size:11px;color:var(--red);margin-top:8px}
+
+@media(max-width:720px){
+  .db-cols{grid-template-columns:1fr}
+  .db-col{border-right:none;border-bottom:1px solid var(--border)}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .gh-body{grid-template-columns:1fr 1fr}
+  .hdr p,.hdr-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">宜</div>
+  <div>
+    <h1>114年度資本門計畫 · 資料檢核系統</h1>
+    <p>宜蘭縣政府主計處 ｜ 月分配驗證 · 必填欄位 · GitHub 自動存檔 · 進度追蹤</p>
+  </div>
+  <div class="hdr-right">
+    <div class="gh-status-dot" id="ghDot" title="GitHub 未設定"></div>
+    <span class="hdr-badge">純瀏覽器 · 零安裝</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ── GitHub 設定 ── -->
+  <details class="gh-panel" id="ghPanel">
+    <summary>⚙️ GitHub 自動存檔設定（通過的檔案自動上傳保存）</summary>
+    <div class="gh-body">
+      <div>
+        <label>Personal Access Token</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+      <div>
+        <label>Repository（Owner/Repo）</label>
+        <input type="text" id="ghRepo" placeholder="y1239051-commits/capital-plan-checker">
+      </div>
+      <div>
+        <label>存放資料夾路徑（可空白）</label>
+        <input type="text" id="ghFolder" placeholder="114年度/通過檔案">
+      </div>
+      <button class="gh-save" onclick="saveGH()">儲存設定</button>
+      <div class="gh-note">
+        ⚠ Token 僅存在本機瀏覽器（localStorage），不會傳送至任何伺服器。Token 需具備 <strong>repo 寫入權限</strong>。<br>
+        設定後，每次有單位「通過」時系統會自動呼叫 GitHub API 將 .ods 原始檔案上傳至您的 repository 存檔。
+      </div>
+    </div>
+  </details>
+
+  <!-- ── 進度儀表板 ── -->
+  <div class="db" id="dashboard">
+    <div class="db-hdr">
+      <h2>📊 各單位填報進度</h2>
+      <div class="db-prog-wrap">
+        <div class="db-prog-bar"><div class="db-prog-fill" id="dbFill" style="width:0%"></div></div>
+        <span class="db-prog-txt" id="dbTxt">0 / 31</span>
+      </div>
+    </div>
+    <div class="db-cols">
+      <div class="db-col col-ok">
+        <div class="db-col-hdr">✅ 已通過<span class="cnt" id="cntOk">0</span></div>
+        <div class="db-chips" id="chipsOk"></div>
+      </div>
+      <div class="db-col col-fail">
+        <div class="db-col-hdr">❌ 上傳未通過<span class="cnt" id="cntFail">0</span></div>
+        <div class="db-chips" id="chipsFail"></div>
+      </div>
+      <div class="db-col col-pend">
+        <div class="db-col-hdr">⬜ 尚未上傳<span class="cnt" id="cntPend">31</span></div>
+        <div class="db-chips" id="chipsPend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 拖曳上傳 ── -->
+  <div class="dz" id="dz">
+    <input type="file" id="fi" multiple accept=".ods,.ODS">
+    <div class="dz-ico">📂</div>
+    <h2>拖曳各單位 .ods 檔至此，或點擊選取</h2>
+    <p>可一次選取多個檔案 · 重複上傳同一單位會自動覆蓋舊結果</p>
+    <small>🔒 所有驗證在本機瀏覽器完成，資料不會傳送至任何伺服器（GitHub 存檔除外）</small>
+  </div>
+
+  <div class="pgwrap" id="pw">
+    <div class="pglbl" id="pl">正在處理...</div>
+    <div class="pgbar"><div class="pgfill" id="pf"></div></div>
+  </div>
+
+  <div id="res" style="display:none">
+    <div class="stat-grid">
+      <div class="stat s-blue"><div class="stat-lbl">已載入單位</div><div class="stat-val" id="sU">0</div></div>
+      <div class="stat s-blue"><div class="stat-lbl">計畫案總數</div><div class="stat-val" id="sC">0</div></div>
+      <div class="stat s-red"><div class="stat-lbl">月分配不符</div><div class="stat-val" id="sB">0</div></div>
+      <div class="stat s-purple"><div class="stat-lbl">元/千元混填</div><div class="stat-val" id="sU2">0</div></div>
+      <div class="stat s-amber"><div class="stat-lbl">必填缺漏案數</div><div class="stat-val" id="sM">0</div></div>
+      <div class="stat s-amber"><div class="stat-lbl">#DIV/0! 錯誤格</div><div class="stat-val" id="sD">0</div></div>
+      <div class="stat s-green"><div class="stat-lbl">完全正確單位</div><div class="stat-val" id="sOK">0</div></div>
+      <div class="stat s-blue"><div class="stat-lbl">GitHub 已存檔</div><div class="stat-val" id="sGH">0</div></div>
+    </div>
+    <div class="acts">
+      <button class="btn-p" onclick="exportAll()">📥 匯出全部 HTML 報告</button>
+      <button class="btn-s" onclick="exportCSV()">📊 下載錯誤清單 CSV</button>
+      <button class="btn-s" onclick="clearAll()">🗑 清除全部重新開始</button>
+    </div>
+    <div class="sec">
+      <div class="sec-hdr">
+        <h2>各單位檢核明細</h2>
+        <span class="badge red" id="eBadge"></span>
+        <span class="badge green" id="okBadge"></span>
+      </div>
+      <div id="cards"></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════
+   預定單位清單（共 31 個）
+═══════════════════════════════════════════════ */
+var UNIT_LIST=[
+  '秘書處','計畫處','人事處','政風處','交通處','民政處','工旅處','水資處',
+  '建設處','教育處','農業處','社會處','地政處','三星戶所','冬山戶政',
+  '動防所','原民所','宜蘭地政','家教中心','文化局','樹藝所','海洋所',
+  '消防局','環保局','礁溪戶政','羅東地政','衛生局','警察局','財稅局',
+  '長照所','體育場'
+];
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+var ALL=[];           // 完整結果陣列（供渲染詳細卡片）
+var UNIT_MAP={};      // { unitName: { result, ab, filename, ghStatus, ghUrl } }
+
+/* ═══════════════════════════════════════════════
+   GITHUB 設定
+═══════════════════════════════════════════════ */
+function saveGH(){
+  var t=g('ghToken').value.trim();
+  var r=g('ghRepo').value.trim();
+  var f=g('ghFolder').value.trim();
+  localStorage.setItem('gh_token',t);
+  localStorage.setItem('gh_repo',r);
+  localStorage.setItem('gh_folder',f);
+  updateGHDot();
+  alert('✅ GitHub 設定已儲存！\n\n下次有單位通過時會自動上傳至：\n'+r+(f?'/'+f:''));
+}
+function loadGH(){
+  var t=localStorage.getItem('gh_token')||'';
+  var r=localStorage.getItem('gh_repo')||'';
+  var f=localStorage.getItem('gh_folder')||'';
+  g('ghToken').value=t;
+  g('ghRepo').value=r;
+  g('ghFolder').value=f;
+  updateGHDot();
+}
+function getGHCfg(){
+  return{
+    token:localStorage.getItem('gh_token')||'',
+    repo:localStorage.getItem('gh_repo')||'',
+    folder:localStorage.getItem('gh_folder')||''
+  };
+}
+function updateGHDot(){
+  var cfg=getGHCfg();
+  var dot=g('ghDot');
+  if(cfg.token&&cfg.repo){dot.className='gh-status-dot ok';dot.title='GitHub 已設定：'+cfg.repo;}
+  else{dot.className='gh-status-dot';dot.title='GitHub 未設定';}
+}
+
+/* ═══════════════════════════════════════════════
+   GITHUB 上傳
+═══════════════════════════════════════════════ */
+async function uploadToGitHub(unit,filename,ab){
+  var cfg=getGHCfg();
+  if(!cfg.token||!cfg.repo)return{ok:false,msg:'GitHub 未設定'};
+
+  var folder=cfg.folder.replace(/^\/|\/$/g,'');
+  var filePath=(folder?folder+'/':'')+filename;
+  var parts=cfg.repo.split('/');
+  if(parts.length<2)return{ok:false,msg:'Repository 格式錯誤（應為 Owner/Repo）'};
+  var owner=parts[0],repo=parts.slice(1).join('/');
+
+  var apiUrl='https://api.github.com/repos/'+owner+'/'+repo+'/contents/'+encodeURIComponent(filePath).replace(/%2F/g,'/');
+
+  // base64 encode
+  var bytes=new Uint8Array(ab);
+  var binary='',chunk=8192;
+  for(var i=0;i<bytes.length;i+=chunk){
+    binary+=String.fromCharCode.apply(null,bytes.slice(i,Math.min(i+chunk,bytes.length)));
+  }
+  var b64=btoa(binary);
+
+  // Check existing (to get SHA for update)
+  var sha=null;
+  try{
+    var getRes=await fetch(apiUrl,{headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}});
+    if(getRes.ok){var d=await getRes.json();sha=d.sha;}
+  }catch(e){}
+
+  var body={
+    message:'✅ '+unit+' 資本門計畫通過檢核 ('+new Date().toLocaleString('zh-TW')+')',
+    content:b64,
+    branch:'main'
+  };
+  if(sha)body.sha=sha;
+
+  try{
+    var res=await fetch(apiUrl,{
+      method:'PUT',
+      headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(res.ok){
+      var json=await res.json();
+      return{ok:true,url:json.content&&json.content.html_url};
+    }else{
+      var err=await res.json();
+      return{ok:false,msg:'HTTP '+res.status+': '+(err.message||'未知錯誤')};
+    }
+  }catch(e){
+    return{ok:false,msg:String(e)};
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   UNIT NAME MATCHING
+═══════════════════════════════════════════════ */
+function matchUnit(fn,parsedUnitName){
+  // 1. Use parsed unit name if it matches a known unit
+  if(parsedUnitName){
+    for(var i=0;i<UNIT_LIST.length;i++){
+      if(parsedUnitName.indexOf(UNIT_LIST[i])>=0)return UNIT_LIST[i];
+    }
+  }
+  // 2. Scan filename for unit name
+  for(var i=0;i<UNIT_LIST.length;i++){
+    if(fn.indexOf(UNIT_LIST[i])>=0)return UNIT_LIST[i];
+  }
+  // 3. Fallback
+  return parsedUnitName||guessName(fn);
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+(function boot(){
+  loadGH();
+  renderDashboard();
+  var dz=g('dz'),fi=g('fi');
+  fi.addEventListener('change',function(e){go(Array.from(e.target.files));});
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+  dz.addEventListener('drop',function(e){
+    e.preventDefault();dz.classList.remove('over');
+    go(Array.from(e.dataTransfer.files).filter(function(f){return/\.ods$/i.test(f.name);}));
+  });
+})();
+
+/* ═══════════════════════════════════════════════
+   PROCESS FILES（累積模式：同一單位重複上傳會覆蓋）
+═══════════════════════════════════════════════ */
+function go(files){
+  if(!files.length)return;
+  var pw=g('pw'),pf=g('pf'),pl=g('pl');
+  pw.classList.add('show');
+  var i=0,newAbs={};
+
+  (function next(){
+    if(i>=files.length){
+      // Merge new results into UNIT_MAP and ALL
+      Object.keys(newAbs).forEach(function(un){
+        var entry=newAbs[un];
+        UNIT_MAP[un]=entry;
+        // Remove old ALL entry for this unit
+        ALL=ALL.filter(function(r){return r._unitKey!==un;});
+        // Add new
+        entry.result._unitKey=un;
+        ALL.push(entry.result);
+        // If passed → upload to GitHub
+        if(!entry.result.parseErr&&!hasError(entry.result)){
+          entry.ghStatus='uploading';
+          uploadToGitHub(un,entry.filename,entry.ab).then(function(res){
+            entry.ghStatus=res.ok?'done':'err';
+            entry.ghUrl=res.url||'';
+            entry.ghMsg=res.msg||'';
+            render();
+          });
+        }
+      });
+      render();
+      pw.classList.remove('show');
+      return;
+    }
+    var f=files[i++];
+    pl.textContent='解析中：'+f.name+'（'+i+'/'+files.length+'）';
+    pf.style.width=(i/files.length*100)+'%';
+    var r=new FileReader();
+    r.onload=function(e){
+      var ab=e.target.result;
+      var result;
+      try{result=parse(f.name,ab);}
+      catch(err){result={fn:f.name,unit:guessName(f.name),sheet:'—',parseErr:err.message,cases:[],be:[],me:[],de:0,ue:[]};}
+      var un=matchUnit(f.name,result.unit);
+      result.unit=un;
+      newAbs[un]={result:result,ab:ab,filename:f.name,ghStatus:null,ghUrl:'',ghMsg:''};
+      setTimeout(next,15);
+    };
+    r.readAsArrayBuffer(f);
+  })();
+}
+
+function hasError(r){
+  return r.be.length+r.me.length+r.ue.length+(r.parseErr?1:0)>0;
+}
+
+/* ═══════════════════════════════════════════════
+   PARSE ODS
+═══════════════════════════════════════════════ */
+function parse(fn,ab){
+  var wb=XLSX.read(new Uint8Array(ab),{type:'array',cellFormula:false,raw:true,cellDates:false});
+  var sheets=wb.SheetNames;
+  var c=sheets.filter(function(s){return s.indexOf('範例')<0;});
+  if(!c.length)c=sheets;
+  var p=c.filter(function(s){return s.indexOf('空白')<0;});
+  var ns=p.filter(function(s){return s.indexOf('送主計')<0;});
+  var shName=(ns.length?ns:p.length?p:c).slice(-1)[0];
+  var ws=wb.Sheets[shName];
+  var raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+  var de=0;
+  var rng=XLSX.utils.decode_range(ws['!ref']||'A1:Z50');
+  for(var R=rng.s.r;R<=rng.e.r;R++)for(var C=rng.s.c;C<=rng.e.c;C++){var cell=ws[XLSX.utils.encode_cell({r:R,c:C})];if(cell&&cell.t==='e')de++;}
+  var hr=-1;
+  for(var i=0;i<Math.min(raw.length,12);i++){var row=raw[i];if(row&&row.some(function(c){return c&&String(c).indexOf('項次')>=0;})&&row.some(function(c){return c&&String(c).indexOf('計畫名稱')>=0;})){hr=i;break;}}
+  if(hr<0)throw new Error('找不到表頭列（應含「項次」與「計畫名稱」欄）');
+  var hdrs=raw[hr];
+  var cm=colMap(hdrs);
+  var cases=[],be=[],me=[],ue=[],unitName='';
+  var STOP=['500萬','合計','小計','註1','NOTE'];
+  var EXEMPT=['補助款不需發包','規劃設計案','無需發包','不需發包','無開工','規劃案'];
+  function isEx(v){return v&&EXEMPT.some(function(k){return String(v).indexOf(k)>=0;});}
+  for(var ri=hr+1;ri<raw.length;ri++){
+    var row=raw[ri];if(!row)continue;
+    var c0=nzStr(row[0]);
+    if(STOP.some(function(s){return c0.indexOf(s)>=0;}))break;
+    var cn=nzStr(row,cm.idx),nm=nzStr(row,cm.name);
+    if(!cn&&!nm)continue;
+    if(!cn)continue;
+    var un=nzStr(row,cm.unit);if(un)unitName=un;
+    var budget=numVal(row,cm.bud);
+    var mths=[],ms=0;
+    for(var m=0;m<12;m++){var mv=numVal(row,cm.mb+m);mths.push(mv);ms+=mv;}
+    var decided=nzStr(row,cm.dec),start=nzStr(row,cm.st),dur=nzStr(row,cm.dur),remark=nzStr(row,cm.rem);
+    cases.push({cn:cn,nm:nm,budget:budget,mths:mths,ms:ms,decided:decided,start:start,dur:dur,remark:remark});
+    if(budget!==0){
+      var diff=ms-budget,allZ=mths.every(function(v){return v===0;}),ratio=budget>0?ms/budget:0;
+      if(Math.abs(ratio-1000)<5&&ms>0){ue.push({cn:cn,nm:nm,budget:budget,ms:ms});}
+      else if(allZ&&budget>0){be.push({cn:cn,nm:nm,budget:budget,ms:0,diff:-budget,type:'月分配全為0'});}
+      else if(Math.abs(diff)>0.5){be.push({cn:cn,nm:nm,budget:budget,ms:ms,diff:diff,type:diff>0?'超出預算':'分配不足'});}
+    }
+    var miss=[];
+    if(!decided&&!isEx(decided)&&!isEx(remark))miss.push('預計決標日');
+    if(!start&&!isEx(start)&&!isEx(remark))miss.push('預計開工日');
+    if(!dur&&!isEx(dur)&&!isEx(remark))miss.push('履約期間');
+    if(miss.length)me.push({cn:cn,nm:nm,miss:miss});
+  }
+  if(!unitName)unitName=guessName(fn);
+  return{fn:fn,unit:unitName,sheet:shName,parseErr:null,cases:cases,be:be,me:me,de:de,ue:ue};
+}
+
+function colMap(hdrs){
+  var m={mb:14,idx:null,name:null,unit:null,bud:null,dec:null,st:null,dur:null,rem:null};
+  hdrs.forEach(function(h,i){
+    var s=h?String(h):'';
+    if(s.indexOf('單位')>=0&&s.indexOf('計')<0)m.unit=i;
+    if(s.indexOf('項次')>=0)m.idx=i;
+    if(s.indexOf('計畫名稱')>=0)m.name=i;
+    if(s.indexOf('本年度預算數(1)')>=0)m.bud=i;
+    if(s.indexOf('預計決標日')>=0)m.dec=i;
+    if(s.indexOf('預計開工日')>=0)m.st=i;
+    if(s.indexOf('履約期間')>=0)m.dur=i;
+    if(s.indexOf('備註')>=0)m.rem=i;
+    if(s.indexOf('分配數1月')>=0&&m.mb===14)m.mb=i;
+  });
+  return m;
+}
+
+function nzStr(rowOrVal,col){
+  var v=(col!==undefined&&col!==null&&Array.isArray(rowOrVal))?rowOrVal[col]:rowOrVal;
+  if(v===null||v===undefined)return'';
+  var s=String(v).trim();return(s===''||s==='null')?'':s;
+}
+function numVal(row,col){
+  if(col===undefined||col===null)return 0;
+  var v=Array.isArray(row)?row[col]:null;
+  if(v===null||v===undefined)return 0;
+  var n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;
+}
+function guessName(fn){return fn.replace(/\.ods$/i,'').replace(/^\d+[._\s]*/,'').replace(/ok$/i,'').replace(/OK$/,'').trim();}
+
+/* ═══════════════════════════════════════════════
+   RENDER DASHBOARD（進度儀表板）
+═══════════════════════════════════════════════ */
+function renderDashboard(){
+  var okUnits=[],failUnits=[],pendUnits=[];
+  UNIT_LIST.forEach(function(un){
+    var entry=UNIT_MAP[un];
+    if(!entry){pendUnits.push(un);}
+    else if(!entry.result.parseErr&&!hasError(entry.result)){okUnits.push(un);}
+    else{failUnits.push(un);}
+  });
+  // Also include uploaded units not in UNIT_LIST
+  Object.keys(UNIT_MAP).forEach(function(un){
+    if(UNIT_LIST.indexOf(un)<0){
+      var entry=UNIT_MAP[un];
+      if(!entry.result.parseErr&&!hasError(entry.result))okUnits.push(un);
+      else failUnits.push(un);
+    }
+  });
+
+  var total=UNIT_LIST.length;
+  var done=okUnits.length;
+  var pct=Math.round(done/total*100);
+  g('dbFill').style.width=pct+'%';
+  g('dbTxt').textContent=done+' / '+total;
+  setText('cntOk',okUnits.length);
+  setText('cntFail',failUnits.length);
+  setText('cntPend',pendUnits.length);
+
+  // Render chips
+  g('chipsOk').innerHTML=okUnits.map(function(un){
+    var e=UNIT_MAP[un];
+    var ghBadge='';
+    if(e&&e.ghStatus==='uploading')ghBadge='<span class="chip-gh" title="上傳中">⏳</span>';
+    else if(e&&e.ghStatus==='done')ghBadge='<span class="chip-gh" title="GitHub 已存檔">☁️</span>';
+    else if(e&&e.ghStatus==='err')ghBadge='<span class="chip-gh" title="GitHub 上傳失敗">⚠️</span>';
+    return'<span class="chip ok">✓ '+esc(un)+ghBadge+'</span>';
+  }).join('');
+
+  g('chipsFail').innerHTML=failUnits.map(function(un){
+    var idx=ALL.findIndex(function(r){return r._unitKey===un;});
+    var onclick=idx>=0?'onclick="scrollToCard('+idx+')"':'';
+    return'<span class="chip fail" '+onclick+' title="點擊查看詳情">✗ '+esc(un)+'</span>';
+  }).join('');
+
+  g('chipsPend').innerHTML=pendUnits.map(function(un){
+    return'<span class="chip pend">'+esc(un)+'</span>';
+  }).join('');
+
+  // Update GH saved count
+  var ghDone=Object.values(UNIT_MAP).filter(function(e){return e.ghStatus==='done';}).length;
+  setText('sGH',ghDone);
+}
+
+function scrollToCard(i){
+  var el=g('uc'+i);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'start'});var bd=g('bd'+i);var ch=g('ch'+i);if(bd)bd.classList.add('open');if(ch)ch.classList.add('open');}
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER（主渲染）
+═══════════════════════════════════════════════ */
+function render(){
+  g('res').style.display='block';
+  var tC=0,tB=0,tM=0,tD=0,tU=0,nOk=0,nErr=0;
+  ALL.forEach(function(r){
+    tC+=r.cases.length;tB+=r.be.length;tM+=r.me.length;tD+=r.de;tU+=r.ue.length;
+    hasError(r)?nErr++:nOk++;
+  });
+  ALL.sort(function(a,b){
+    var sa=scoreResult(a),sb=scoreResult(b);return sb-sa;
+  });
+  setText('sU',Object.keys(UNIT_MAP).length);setText('sC',tC);setText('sB',tB);
+  setText('sU2',tU);setText('sM',tM);setText('sD',tD);setText('sOK',nOk);
+  setText('eBadge',nErr+' 個單位有問題');setText('okBadge',nOk+' 個單位通過');
+  var html='';ALL.forEach(function(r,i){html+=cardHtml(r,i);});
+  g('cards').innerHTML=html;
+  renderDashboard();
+}
+
+function scoreResult(r){
+  return(r.parseErr?100:0)+r.ue.length*8+r.be.length*4+r.me.length*2+r.de;
+}
+
+/* ═══════════════════════════════════════════════
+   CARD HTML
+═══════════════════════════════════════════════ */
+function cardHtml(r,i){
+  var isErr=hasError(r);
+  var cls=!isErr?'ok':((r.me.length&&!r.be.length&&!r.ue.length&&!r.parseErr)?'warn':'err');
+  var tags='';
+  if(r.parseErr)tags+='<span class="tag red">解析失敗</span>';
+  if(r.ue.length)tags+='<span class="tag purple">元/千元×'+r.ue.length+'</span>';
+  if(r.be.length)tags+='<span class="tag red">月分配×'+r.be.length+'</span>';
+  if(r.me.length)tags+='<span class="tag amber">缺填×'+r.me.length+'</span>';
+  if(r.de>0)tags+='<span class="tag blue">#DIV/0!×'+r.de+'</span>';
+  if(!isErr)tags+='<span class="tag green">✓ 全部通過</span>';
+
+  // GH status tag
+  var un=r._unitKey||r.unit;
+  var entry=UNIT_MAP[un];
+  var ghTag='';
+  if(entry&&entry.ghStatus==='uploading')ghTag='<span class="tag grey">⏳ GitHub 上傳中...</span>';
+  else if(entry&&entry.ghStatus==='done')ghTag='<span class="tag green">☁️ GitHub 已存檔</span>';
+  else if(entry&&entry.ghStatus==='err')ghTag='<span class="tag red" title="'+esc(entry.ghMsg||'')+'">⚠️ GitHub 失敗</span>';
+
+  var body='';
+  if(r.parseErr){
+    body='<div style="color:var(--red);padding:10px 0;font-size:13px">⚠ 解析錯誤：'+esc(r.parseErr)+'</div>';
+  }else if(!isErr){
+    body='<div class="ok-box">✅ 本單位 '+r.cases.length+' 案資料均通過檢核，無錯誤。</div>';
+    if(entry&&entry.ghStatus==='uploading')body+='<div class="gh-uploading">⏳ 正在上傳至 GitHub...</div>';
+    else if(entry&&entry.ghStatus==='done')body+='<div class="gh-done">☁️ 已存檔至 GitHub：<a href="'+esc(entry.ghUrl||'')+'" target="_blank" style="color:var(--accent)">查看檔案</a></div>';
+    else if(entry&&entry.ghStatus==='err')body+='<div class="gh-fail">⚠️ GitHub 上傳失敗：'+esc(entry.ghMsg||'')+' <button class="btn-s" style="font-size:10px;padding:2px 8px;margin-left:6px" onclick="retryGH(\''+esc(un)+'\')">重試</button></div>';
+  }else{
+    if(r.ue.length){
+      body+='<div class="eg"><div class="eg-ttl purple">🔴 疑似「元/千元」填報錯誤（'+r.ue.length+' 案）</div>';
+      body+=buildTable(['案次','計畫名稱','本年度預算(千元)','月分配加總(實填)','倍率'],
+        r.ue.map(function(e){return'<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td><td>'+esc(trunc(e.nm,36))+'</td><td class="mn">'+fmt(e.budget)+'</td><td class="mn" style="color:var(--purple)">'+fmt(e.ms)+'</td><td><span class="pill pu">×1000</span></td></tr>';}));
+      body+='<div class="note">👉 月分配欄位單位為「千元」，請將各月填入數值除以 1,000 後重新填報。</div></div>';
+    }
+    if(r.be.length){
+      body+='<div class="eg"><div class="eg-ttl red">⚠ 月分配合計 ≠ 本年度預算數（'+r.be.length+' 筆）</div>';
+      body+=buildTable(['案次','計畫名稱','本年度預算(千元)','月分配合計','差額','類型'],
+        r.be.map(function(e){var dc=e.diff>0?'pos':'neg';return'<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td><td>'+esc(trunc(e.nm,36))+'</td><td class="mn">'+fmt(e.budget)+'</td><td class="mn" style="color:'+(e.ms===0?'var(--amber)':'inherit')+'">'+fmt(e.ms)+'</td><td><span class="pill '+dc+'">'+(e.diff>0?'+':'')+fmt(e.diff)+'</span></td><td style="font-size:11px">'+esc(e.type)+'</td></tr>';}));
+      body+='</div>';
+    }
+    if(r.me.length){
+      body+='<div class="eg"><div class="eg-ttl amber">⚠ 必填欄位缺漏（'+r.me.length+' 案）</div>';
+      body+=buildTable(['案次','計畫名稱','缺漏欄位'],
+        r.me.map(function(e){return'<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td><td>'+esc(trunc(e.nm,36))+'</td><td>'+e.miss.map(function(m){return'<span class="mb">'+esc(m)+'</span>';}).join('')+'</td></tr>';}));
+      body+='<div class="note">👉 若屬補助款不需發包、規劃設計案等情形，可於備註欄填寫說明，系統將自動豁免驗證。</div></div>';
+    }
+    if(r.de>0){
+      body+='<div class="eg"><div class="eg-ttl blue">ℹ #DIV/0! 統計（'+r.de+' 格）</div><div class="note">共偵測到 <strong style="color:var(--accent)">'+r.de+'</strong> 個 #DIV/0! 錯誤格，通常出現於「累計分配預算數」欄位尚未填入。</div></div>';
+    }
+  }
+
+  return'<div class="uc '+cls+'" id="uc'+i+'">'
+    +'<div class="uc-hdr" onclick="tog('+i+')">'
+    +'<div><div class="uc-name">'+esc(r.unit)+'</div>'
+    +'<div class="uc-meta">工作表：'+esc(r.sheet)+' ｜ '+esc(r.fn)+' ｜ 共 '+r.cases.length+' 案</div></div>'
+    +'<div class="uc-tags">'+tags+ghTag+'</div>'
+    +'<span class="chev'+(isErr?' open':'')+('' )+'" id="ch'+i+'">▶</span>'
+    +'</div>'
+    +'<div class="uc-body'+(isErr?' open':'')+('' )+'" id="bd'+i+'">'
+    +body
+    +(r.cases.length?'<button class="btn-s" style="margin-top:13px" onclick="exportOne('+i+')">📥 匯出本單位 HTML 報告</button>':'')
+    +'</div></div>';
+}
+
+function retryGH(un){
+  var entry=UNIT_MAP[un];
+  if(!entry)return;
+  entry.ghStatus='uploading';
+  render();
+  uploadToGitHub(un,entry.filename,entry.ab).then(function(res){
+    entry.ghStatus=res.ok?'done':'err';
+    entry.ghUrl=res.url||'';
+    entry.ghMsg=res.msg||'';
+    render();
+  });
+}
+
+function tog(i){g('bd'+i).classList.toggle('open');g('ch'+i).classList.toggle('open');}
+
+function buildTable(cols,rows){
+  return'<table><thead><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+}
+
+/* ═══════════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════════ */
+function exportOne(i){var r=ALL[i];dl(buildReport(r),r.unit+'_檢核報告.html');}
+function exportAll(){ALL.forEach(function(r,i){setTimeout(function(){dl(buildReport(r),r.unit+'_檢核報告.html');},i*320);});}
+
+function buildReport(r){
+  var now=new Date().toLocaleString('zh-TW');
+  var ue=r.ue||[],be=r.be||[],me=r.me||[],de=r.de||0;
+  var isErr=hasError(r);
+  function tbl(cols,rows){return'<table><thead><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';}
+  var body='';
+  if(r.parseErr)body='<div class="box red">⚠ 解析錯誤：'+esc(r.parseErr)+'</div>';
+  else if(!isErr)body='<div class="box green">✅ 本單位所有計畫案資料均通過檢核，無錯誤，感謝配合！</div>';
+  else{
+    if(ue.length)body+='<h3 class="rh">🔴 疑似「元/千元」填報錯誤（'+ue.length+' 案）</h3><div class="note">月分配欄位單位為「千元」，以下案件月分配加總約為預算數的 1,000 倍。請除以 1,000 重填。</div>'+tbl(['案次','計畫名稱','本年度預算(千元)','月分配加總','倍率'],ue.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td align="right">'+fmt(e.budget)+'</td><td align="right" style="color:#7b1fa2"><b>'+fmt(e.ms)+'</b></td><td align="center">×1000</td></tr>';}));
+    if(be.length)body+='<h3 class="rh">⚠ 月分配合計 ≠ 本年度預算數（'+be.length+' 筆）</h3>'+tbl(['案次','計畫名稱','本年度預算(千元)','月分配合計','差額','類型'],be.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td align="right">'+fmt(e.budget)+'</td><td align="right">'+fmt(e.ms)+'</td><td align="right" style="color:#c62828"><b>'+(e.diff>0?'+':'')+fmt(e.diff)+'</b></td><td>'+esc(e.type)+'</td></tr>';}));
+    if(me.length)body+='<h3 class="ah">⚠ 必填欄位缺漏（'+me.length+' 案）</h3><div class="note">若屬補助款不需發包、規劃設計案等情形，請於備註欄填寫說明。</div>'+tbl(['案次','計畫名稱','缺漏欄位'],me.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td>'+e.miss.map(function(m){return'<span class="tm">'+esc(m)+'</span>';}).join('')+'</td></tr>';}));
+    if(de>0)body+='<h3 style="color:#1565c0;margin-top:24px">ℹ #DIV/0! 統計（'+de+' 格）</h3><div class="note">共偵測到 <b>'+de+'</b> 個 #DIV/0! 錯誤格（通常為「累計分配預算數」尚未填入）。</div>';
+  }
+  return'<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(r.unit)+'－資本門計畫檢核報告</title>'
+    +'<style>body{font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;max-width:960px;margin:0 auto;padding:32px 24px 60px;background:#fafafa;color:#1a1a2e}'
+    +'h1{color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:10px}'
+    +'.meta{background:#e3f2fd;border-radius:8px;padding:14px 18px;margin:16px 0 24px;font-size:13px;color:#0d47a1;line-height:1.8}'
+    +'.box{border-radius:8px;padding:14px 18px;font-size:14px;font-weight:600;margin:16px 0}'
+    +'.box.green{background:#e8f5e9;border:2px solid #4caf50;color:#1b5e20}'
+    +'.box.red{background:#ffebee;border:2px solid #f44336;color:#c62828}'
+    +'.rh{color:#c62828;margin:28px 0 10px}.ah{color:#e65100;margin:28px 0 10px}'
+    +'.note{background:#f5f5f5;border-radius:6px;padding:8px 12px;font-size:12px;margin:8px 0 10px;line-height:1.6}'
+    +'table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}'
+    +'th{background:#e8eaf6;color:#283593;padding:8px 11px;text-align:left;border:1px solid #c5cae9}'
+    +'td{padding:7px 11px;border:1px solid #e0e0e0;vertical-align:top}'
+    +'tr:nth-child(even)td{background:#f5f5f5}'
+    +'.tm{background:#fff3e0;border:1px solid #e65100;color:#e65100;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block}'
+    +'hr{margin:40px 0;border:none;border-top:1px solid #e0e0e0}'
+    +'footer{font-size:11px;color:#9e9e9e}'
+    +'</style></head><body>'
+    +'<h1>📋 114年度資本門計畫 · 資料檢核報告</h1>'
+    +'<div class="meta">報告對象：<strong>'+esc(r.unit)+'</strong><br>來源檔案：'+esc(r.fn)+'　｜　工作表：'+esc(r.sheet)+'<br>計畫案數：<strong>'+r.cases.length+'</strong>　｜　報告時間：'+now+'</div>'
+    +body
+    +'<hr><footer>本報告由宜蘭縣政府資本門計畫檢核系統自動產生 ｜ '+now+'</footer>'
+    +'</body></html>';
+}
+
+function exportCSV(){
+  var rows=['\uFEFF單位,案次,計畫名稱,錯誤類型,說明'];
+  ALL.forEach(function(r){
+    if(r.parseErr){rows.push([r.unit,'','','解析失敗',r.parseErr].map(ce).join(','));return;}
+    r.ue.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','元/千元混填','月合計≈預算×1000'].map(ce).join(','));});
+    r.be.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','月分配不符',e.type+'　預算'+e.budget+'千元　合計'+e.ms+'千元　差額'+e.diff].map(ce).join(','));});
+    r.me.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','必填缺漏',e.miss.join('、')].map(ce).join(','));});
+    if(!r.ue.length&&!r.be.length&&!r.me.length)rows.push([r.unit,'','','全部通過',''].map(ce).join(','));
+  });
+  dl(rows.join('\n'),'資本門計畫檢核_錯誤清單.csv','text/csv;charset=utf-8');
+}
+
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+function g(id){return document.getElementById(id);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ce(s){s=String(s||'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+function fmt(n){return Number(n||0).toLocaleString('zh-TW');}
+function trunc(s,n){s=String(s||'');return s.length>n?s.substr(0,n)+'…':s;}
+function setText(id,v){var el=g(id);if(el)el.textContent=v;}
+function dl(content,name,type){
+  var blob=new Blob([content],{type:type||'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+}
+function clearAll(){
+  ALL=[];UNIT_MAP={};
+  g('res').style.display='none';g('fi').value='';g('cards').innerHTML='';
+  renderDashboard();
+}
+</script>
+</body>
+</html>
 
