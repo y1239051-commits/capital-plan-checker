@@ -3,208 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>宜蘭縣政府｜114年度資本門計畫 · 檢核與進度追蹤系統</title>
+<title>宜蘭縣政府 · 114年度資本門計畫 · 資料檢核系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
 :root{
-  --bg:#0d1117;--sf:#161b22;--sf2:#1c2128;--sf3:#21262d;
-  --bd:#30363d;--bd2:#21262d;
-  --tx:#e6edf3;--tx2:#8b949e;--tx3:#6e7681;
-  --red:#f85149;--rd:rgba(218,54,48,.2);--rb:rgba(218,54,48,.08);
-  --amb:#d29922;--ad:rgba(210,153,34,.22);--ab:rgba(210,153,34,.08);
-  --grn:#3fb950;--gd:rgba(63,185,80,.18);
-  --blu:#388bfd;--bld:rgba(56,139,253,.18);
-  --pur:#bc8cff;--pd:rgba(188,140,255,.18);
-  --acc:#58a6ff;
+  --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;
+  --border:#30363d;--border2:#21262d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --red:#f85149;--red-dim:#da363029;--red-bg:#da363014;
+  --amber:#d29922;--amber-dim:#d2992229;--amber-bg:#d2992214;
+  --green:#3fb950;--green-dim:#3fb95020;--green-bg:#1a3a1e;
+  --blue:#388bfd;--blue-dim:#388bfd20;
+  --purple:#bc8cff;--purple-dim:#bc8cff20;
+  --accent:#58a6ff;--grey-dim:#ffffff10;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',-apple-system,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',-apple-system,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
 
-/* HDR */
-.hdr{background:var(--sf);border-bottom:1px solid var(--bd);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200}
-.logo{width:36px;height:36px;background:linear-gradient(135deg,#388bfd,#bc8cff);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0}
-.hdr h1{font-size:14px;font-weight:700}
-.hdr p{font-size:11px;color:var(--tx2)}
-.ver{margin-left:auto;background:var(--bld);border:1px solid rgba(88,166,255,.35);color:var(--acc);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,#388bfd,#bc8cff);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;flex-shrink:0}
+.hdr h1{font-size:15px;font-weight:700}
+.hdr p{font-size:11px;color:var(--text2)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hdr-badge{background:var(--blue-dim);border:1px solid rgba(88,166,255,.4);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.gh-status-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.gh-status-dot.ok{background:var(--green)}
+.gh-status-dot.err{background:var(--red)}
 
-/* TABS */
-.tabs{background:var(--sf2);border-bottom:1px solid var(--bd);padding:0 24px;display:flex;overflow-x:auto}
-.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--tx2);padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .15s;white-space:nowrap}
-.tab:hover{color:var(--tx)}
-.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
-.pane{display:none;padding:24px 24px 60px;max-width:1180px;margin:0 auto}
-.pane.on{display:block}
+/* WRAP */
+.wrap{max-width:1100px;margin:0 auto;padding:22px 20px 60px}
 
-/* LIB BAR */
-#lib-bar{border-radius:8px;padding:9px 14px;font-size:12px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-#lib-bar.loading{background:var(--bld);border:1px solid var(--blu);color:var(--acc)}
-#lib-bar.ready  {background:var(--gd); border:1px solid var(--grn);color:var(--grn)}
-#lib-bar.error  {background:var(--ab); border:1px solid var(--amb);color:var(--amb)}
-#lib-bar.error a{color:inherit;font-weight:700}
-.spin{width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* ALERT */
+.alert{display:none;background:var(--amber-bg);border:1px solid var(--amber);border-radius:8px;padding:11px 16px;font-size:13px;color:var(--amber);margin-bottom:16px}
+.alert.show{display:block}
 
-/* DZ */
-.dz{border:2px dashed var(--bd);border-radius:12px;padding:44px 24px;text-align:center;background:var(--sf);transition:all .2s}
-.dz.over{border-color:var(--acc);background:var(--bld)}
-.dz-ico{font-size:38px;margin-bottom:10px;display:block}
-.dz h2{font-size:17px;font-weight:700;margin-bottom:5px}
-.dz p{color:var(--tx2);margin-bottom:3px}
-.dz small{color:var(--tx3);font-size:11px}
-.pick-btn{display:inline-block;margin-top:12px;padding:8px 18px;background:var(--acc);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
-.pick-btn:hover{background:#79c0ff}
-.pick-btn:disabled{opacity:.4;cursor:not-allowed}
-#fi{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+/* GITHUB SETTINGS */
+.gh-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.gh-panel summary{list-style:none;padding:13px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;font-weight:600;font-size:13px;color:var(--text2)}
+.gh-panel summary:hover{color:var(--text)}
+.gh-panel summary::before{content:'▶';font-size:10px;transition:transform .2s;flex-shrink:0}
+.gh-panel[open] summary::before{transform:rotate(90deg)}
+.gh-panel[open] summary{color:var(--text);border-bottom:1px solid var(--border)}
+.gh-body{padding:16px 18px;display:grid;grid-template-columns:repeat(3,1fr) auto;gap:10px;align-items:end}
+.gh-body label{font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:5px}
+.gh-body input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;font-family:inherit}
+.gh-body input:focus{outline:none;border-color:var(--accent)}
+.gh-body input[type=password]{font-family:'JetBrains Mono',monospace}
+.gh-save{background:var(--accent);color:#000;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;height:34px;margin-top:18px}
+.gh-save:hover{opacity:.88}
+.gh-note{grid-column:1/-1;font-size:11px;color:var(--text3);padding:6px 0 0}
 
-/* PG */
-.pg{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:14px 18px;margin-top:16px;display:none}
-.pg.on{display:block}
-.pg-lbl{font-size:12px;margin-bottom:6px;color:var(--tx2)}
-.pg-bar{height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
-.pg-fill{height:100%;background:linear-gradient(90deg,#388bfd,#bc8cff);border-radius:2px;width:0%;transition:width .3s}
+/* DASHBOARD */
+.db{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.db-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.db-hdr h2{font-size:14px;font-weight:700}
+.db-prog-wrap{margin-left:auto;display:flex;align-items:center;gap:10px}
+.db-prog-bar{width:160px;height:7px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.db-prog-fill{height:100%;background:linear-gradient(90deg,#3fb950,#58a6ff);border-radius:4px;transition:width .4s}
+.db-prog-txt{font-size:12px;color:var(--text2);white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.db-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.db-col{padding:14px 16px;border-right:1px solid var(--border)}
+.db-col:last-child{border-right:none}
+.db-col-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.db-col-hdr .cnt{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:900;margin-left:auto}
+.db-col.col-ok .db-col-hdr{color:var(--green)}
+.db-col.col-ok .cnt{color:var(--green)}
+.db-col.col-fail .db-col-hdr{color:var(--red)}
+.db-col.col-fail .cnt{color:var(--red)}
+.db-col.col-pend .db-col-hdr{color:var(--text3)}
+.db-col.col-pend .cnt{color:var(--text3)}
+.db-chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;cursor:default;transition:opacity .15s}
+.chip.ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.chip.fail{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.3);cursor:pointer}
+.chip.fail:hover{opacity:.75}
+.chip.pend{background:var(--grey-dim);color:var(--text3);border:1px solid var(--border2)}
+.chip-gh{font-size:9px;opacity:.8}
+
+/* DROP ZONE */
+.dz{border:2px dashed var(--border);border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;position:relative}
+.dz:hover,.dz.over{border-color:var(--accent);background:rgba(88,166,255,.05)}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-ico{font-size:32px;margin-bottom:8px}
+.dz h2{font-size:16px;font-weight:700;margin-bottom:4px}
+.dz p{font-size:12px;color:var(--text2)}
+.dz small{font-size:11px;color:var(--text3);margin-top:8px;display:block}
+.dz.has-files{padding:18px 20px}
+.dz.has-files h2{font-size:14px}
+
+/* PROGRESS BAR */
+.pgwrap{display:none;margin-bottom:14px}
+.pgwrap.show{display:block}
+.pglbl{font-size:12px;color:var(--text2);margin-bottom:6px}
+.pgbar{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.pgfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:2px;transition:width .2s;width:0}
 
 /* STATS */
-.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:22px}
-.sc{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
-.sc-lbl{font-size:10px;color:var(--tx2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
-.sc-val{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1}
-.s-blue .sc-val{color:var(--acc)} .s-red  .sc-val{color:var(--red)}
-.s-amb  .sc-val{color:var(--amb)} .s-grn  .sc-val{color:var(--grn)}
-.s-pur  .sc-val{color:var(--pur)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:13px 15px}
+.stat-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:4px}
+.stat-val{font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.s-blue .stat-val{color:var(--accent)} .s-red .stat-val{color:var(--red)}
+.s-amber .stat-val{color:var(--amber)} .s-green .stat-val{color:var(--green)}
+.s-purple .stat-val{color:var(--purple)}
 
-/* BUTTONS */
-.acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center}
-.btn-p{display:inline-flex;align-items:center;gap:5px;background:var(--acc);border:none;color:#000;padding:8px 15px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;transition:all .15s}
-.btn-p:hover{background:#79c0ff}
-.btn-s{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--bd);color:var(--tx2);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s}
-.btn-s:hover{border-color:var(--acc);color:var(--acc);background:var(--bld)}
-.btn-xs{font-size:11px;padding:4px 9px;border-radius:5px;margin-top:10px}
+/* ACTION BAR */
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.btn-p{background:var(--accent);color:#000;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-p:hover{opacity:.88}
+.btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer}
+.btn-s:hover{border-color:var(--accent);color:var(--accent)}
 
-/* SECTION */
-.sec-hdr{display:flex;align-items:center;gap:8px;margin:26px 0 13px;padding-bottom:9px;border-bottom:1px solid var(--bd)}
-.sec-hdr h2{font-size:15px;font-weight:700}
-.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-family:'JetBrains Mono',monospace;border:1px solid var(--bd);color:var(--tx2);background:var(--sf2)}
-.badge.red{background:var(--rd);border-color:var(--red);color:var(--red)}
-.badge.grn{background:var(--gd);border-color:var(--grn);color:var(--grn)}
-
-/* UNIT CARDS */
-.uc{background:var(--sf);border:1px solid var(--bd);border-radius:10px;margin-bottom:11px;overflow:hidden}
-.uc.err {border-left:3px solid var(--red)}
-.uc.warn{border-left:3px solid var(--amb)}
-.uc.ok  {border-left:3px solid var(--grn)}
-.uc-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s;user-select:none}
-.uc-hdr:hover{background:var(--sf2)}
-.uc-name{font-weight:700;font-size:13px}
-.uc-meta{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:1px}
-.uc-tags{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
-.tag{padding:2px 7px;border-radius:9px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;border:1px solid;white-space:nowrap}
-.tag.red {background:var(--rd);color:var(--red);border-color:var(--red)}
-.tag.amb {background:var(--ad);color:var(--amb);border-color:var(--amb)}
-.tag.pur {background:var(--pd);color:var(--pur);border-color:var(--pur)}
-.tag.grn {background:var(--gd);color:var(--grn);border-color:var(--grn)}
-.tag.blue{background:var(--bld);color:var(--acc);border-color:var(--acc)}
-.chev{color:var(--tx3);font-size:9px;flex-shrink:0;transition:transform .2s;margin-left:2px}
+/* RESULT CARDS */
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sec-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sec-hdr h2{font-size:14px;font-weight:700}
+.badge{padding:3px 10px;border-radius:10px;font-size:10.5px;font-weight:600}
+.badge.red{background:var(--red-dim);color:var(--red)} .badge.green{background:var(--green-dim);color:var(--green)}
+.uc{border-bottom:1px solid var(--border2)}
+.uc:last-child{border-bottom:none}
+.uc.ok .uc-hdr{border-left:3px solid var(--green)}
+.uc.err .uc-hdr{border-left:3px solid var(--red)}
+.uc.warn .uc-hdr{border-left:3px solid var(--amber)}
+.uc-hdr{padding:13px 17px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s}
+.uc-hdr:hover{background:var(--surface2)}
+.uc-name{font-weight:700;font-size:14px}
+.uc-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.uc-tags{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.tag{padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',monospace;border:1px solid}
+.tag.red{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+.tag.amber{background:var(--amber-dim);color:var(--amber);border-color:var(--amber)}
+.tag.purple{background:var(--purple-dim);color:var(--purple);border-color:var(--purple)}
+.tag.green{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.tag.blue{background:var(--blue-dim);color:var(--accent);border-color:var(--accent)}
+.tag.grey{background:var(--grey-dim);color:var(--text3);border-color:var(--border)}
+.chev{color:var(--text3);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:3px}
 .chev.open{transform:rotate(90deg)}
-.uc-body{display:none;padding:0 14px 14px}
+.uc-body{display:none;padding:0 17px 17px}
 .uc-body.open{display:block}
-
-/* ERROR BLOCKS */
-.eb{margin-top:14px}
-.eb-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:5px 8px;border-radius:4px;margin-bottom:7px;display:flex;align-items:center;gap:5px}
-.eb-hdr.red {background:var(--rb);color:var(--red)}
-.eb-hdr.amb {background:var(--ab);color:var(--amb)}
-.eb-hdr.blue{background:var(--bld);color:var(--acc)}
-.eb-hdr.pur {background:var(--pd);color:var(--pur)}
-.eb-hdr .cnt{font-size:9px;opacity:.7;margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0}
-
-/* TABLES */
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:var(--sf2);color:var(--tx2);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:6px 9px;text-align:left;border-bottom:1px solid var(--bd)}
-td{padding:6px 9px;border-bottom:1px solid var(--bd2);vertical-align:top}
+.eg{margin-top:17px}
+.eg-ttl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:5px 9px;border-radius:5px;margin-bottom:9px}
+.eg-ttl.red{background:var(--red-bg);color:var(--red)}
+.eg-ttl.amber{background:var(--amber-bg);color:var(--amber)}
+.eg-ttl.blue{background:var(--blue-dim);color:var(--accent)}
+.eg-ttl.purple{background:var(--purple-dim);color:var(--purple)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--surface2);color:var(--text2);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:7px 10px;border-bottom:1px solid var(--border2);vertical-align:top}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--sf2)}
-.cn{font-family:'JetBrains Mono',monospace;font-weight:600;background:var(--sf2);border:1px solid var(--bd);padding:1px 5px;border-radius:4px;white-space:nowrap;display:inline-block;font-size:10px}
+tr:hover td{background:var(--surface2)}
+.cn{font-family:'JetBrains Mono',monospace;font-weight:600;background:var(--surface2);border:1px solid var(--border);padding:1px 6px;border-radius:4px;white-space:nowrap;display:inline-block;font-size:11px}
 .mn{font-family:'JetBrains Mono',monospace}
-.pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 6px;border-radius:7px}
-.pill.neg{background:var(--rd);color:var(--red)}
-.pill.pos{background:var(--ad);color:var(--amb)}
-.pill.pu {background:var(--pd);color:var(--pur)}
-.mb-tag{display:inline-block;padding:1px 6px;border-radius:3px;margin:1px;font-size:10px;background:var(--rb);color:var(--red);border:1px solid var(--red)}
-.mb-tag.amb{background:var(--ab);color:var(--amb);border-color:var(--amb)}
-.ok-box{background:var(--gd);border:1px solid var(--grn);border-radius:7px;padding:9px 12px;color:var(--grn);font-weight:600;font-size:12px;margin-top:6px}
-.note{font-size:11px;color:var(--tx2);padding:6px 9px;background:var(--sf2);border-left:3px solid var(--bd);border-radius:0 4px 4px 0;margin-top:5px;line-height:1.5}
-.note.red {border-left-color:var(--red);background:var(--rb)}
-.note.amb {border-left-color:var(--amb);background:var(--ab)}
-.note.blue{border-left-color:var(--acc);background:var(--bld)}
-.note.pur {border-left-color:var(--pur);background:var(--pd)}
-.sev{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:2px;margin-right:3px}
-.sev.must{background:var(--rd);color:var(--red)}
-.sev.info{background:var(--ad);color:var(--amb)}
+.pill{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:2px 7px;border-radius:8px;display:inline-block}
+.pill.neg{background:var(--red-dim);color:var(--red)} .pill.pos{background:var(--amber-dim);color:var(--amber)} .pill.pu{background:var(--purple-dim);color:var(--purple)}
+.mb{display:inline-block;padding:2px 7px;border-radius:4px;margin:2px;font-size:10.5px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber)}
+.ok-box{background:var(--green-dim);border:1px solid var(--green);border-radius:7px;padding:10px 13px;color:var(--green);font-weight:600;font-size:12.5px;margin-top:7px}
+.note{font-size:11px;color:var(--text3);padding:7px 9px;background:var(--surface2);border-radius:5px;margin-top:7px;line-height:1.5}
+.gh-uploading{font-size:11px;color:var(--amber);display:flex;align-items:center;gap:5px;margin-top:8px}
+.gh-done{font-size:11px;color:var(--green);margin-top:8px}
+.gh-fail{font-size:11px;color:var(--red);margin-top:8px}
 
-/* GH UPLOAD STATUS */
-.gh-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:6px;margin-top:8px;font-family:'JetBrains Mono',monospace}
-.gh-status.uploading{background:var(--bld);color:var(--acc);border:1px solid var(--blu)}
-.gh-status.done{background:var(--gd);color:var(--grn);border:1px solid var(--grn)}
-.gh-status.fail{background:var(--rb);color:var(--red);border:1px solid var(--red)}
-.gh-status.noconf{background:var(--ab);color:var(--amb);border:1px solid var(--amb)}
-
-/* PROGRESS DASHBOARD */
-.prog-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
-.prog-box{border-radius:10px;padding:16px 18px;text-align:center}
-.prog-box.passed {background:var(--gd);border:1px solid var(--grn)}
-.prog-box.failed {background:var(--rd);border:1px solid var(--red)}
-.prog-box.pending{background:var(--sf);border:1px solid var(--bd)}
-.pnum{font-size:36px;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1}
-.prog-box.passed  .pnum{color:var(--grn)}
-.prog-box.failed  .pnum{color:var(--red)}
-.prog-box.pending .pnum{color:var(--tx3)}
-.plbl{font-size:12px;margin-top:6px;color:var(--tx2)}
-.prog-bar-outer{background:var(--bd);border-radius:4px;height:8px;margin:14px 0 5px;overflow:hidden}
-.prog-bar-inner{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--grn),var(--acc));transition:width .5s}
-.prog-pct{font-size:12px;color:var(--tx2);text-align:right;margin-bottom:14px}
-
-/* UNIT GRID */
-.ut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(278px,1fr));gap:10px}
-.ut{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:11px 13px;display:flex;align-items:flex-start;gap:10px}
-.ut.passed{border-left:3px solid var(--grn)}
-.ut.failed{border-left:3px solid var(--red)}
-.ut.pending{border-left:3px solid var(--bd)}
-.ut-ico{font-size:17px;flex-shrink:0;margin-top:2px}
-.ut-name{font-weight:700;font-size:13px}
-.ut-sub{font-size:11px;color:var(--tx2);margin-top:2px;line-height:1.4}
-.ut-time{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:3px}
-
-/* FILTER ROW */
-.filter-row{display:flex;gap:7px;margin:0 0 16px;flex-wrap:wrap;align-items:center}
-.filter-row .btn-s.active{border-color:var(--acc);color:var(--acc);background:var(--bld)}
-.filter-row .ml{margin-left:auto}
-
-/* SETTINGS */
-.set-form{max-width:580px}
-.set-box{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:16px 18px;margin-bottom:16px}
-.set-box h3{font-size:13px;font-weight:700;margin-bottom:14px;color:var(--tx)}
-.set-group{margin-bottom:16px}
-.set-label{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.06em}
-.set-input{width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:7px;padding:9px 12px;color:var(--tx);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
-.set-input:focus{border-color:var(--acc)}
-.set-input::placeholder{color:var(--tx3)}
-.set-hint{font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.55}
-.set-hint code{background:var(--sf2);border:1px solid var(--bd);padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--acc)}
-.set-save{background:var(--acc);border:none;color:#000;padding:9px 22px;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
-.set-save:hover{background:#79c0ff}
-.set-ok{color:var(--grn);font-size:12px;margin-top:8px;display:none}
-.set-ok.show{display:block}
-.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--tx2);line-height:2}
-.stat-row strong{color:var(--tx)}
-
-@media(max-width:640px){
-  .pane{padding:14px 12px 48px}
-  .sg{grid-template-columns:repeat(2,1fr)}
-  .prog-summary{grid-template-columns:1fr}
-  .hdr p,.ver{display:none}
-  .hdr{padding:10px 14px}
-  .tabs{padding:0 12px}
-  .ut-grid{grid-template-columns:1fr}
+@media(max-width:720px){
+  .db-cols{grid-template-columns:1fr}
+  .db-col{border-right:none;border-bottom:1px solid var(--border)}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .gh-body{grid-template-columns:1fr 1fr}
+  .hdr p,.hdr-badge{display:none}
 }
 </style>
 </head>
@@ -213,939 +179,638 @@ tr:hover td{background:var(--sf2)}
 <header class="hdr">
   <div class="logo">宜</div>
   <div>
-    <h1>114年度資本門計畫 · 檢核與進度追蹤系統</h1>
-    <p>宜蘭縣政府計畫處 ｜ 通過後自動上傳 GitHub · 32 個單位即時監督</p>
+    <h1>114年度資本門計畫 · 資料檢核系統</h1>
+    <p>宜蘭縣政府主計處 ｜ 月分配驗證 · 必填欄位 · GitHub 自動存檔 · 進度追蹤</p>
   </div>
-  <span class="ver">v5.0</span>
+  <div class="hdr-right">
+    <div class="gh-status-dot" id="ghDot" title="GitHub 未設定"></div>
+    <span class="hdr-badge">純瀏覽器 · 零安裝</span>
+  </div>
 </header>
 
-<div class="tabs">
-  <button class="tab on"  onclick="switchTab('check',this)">📋 資料檢核</button>
-  <button class="tab"     onclick="switchTab('progress',this)">📊 進度追蹤</button>
-  <button class="tab"     onclick="switchTab('settings',this)">⚙️ 設定</button>
-</div>
+<div class="wrap">
 
-<!-- ══════ TAB 1 資料檢核 ══════ -->
-<div class="pane on" id="pane-check">
-  <div id="lib-bar" class="loading">
-    <div class="spin"></div>
-    <span id="lib-msg">正在載入 SheetJS 函式庫...</span>
+  <!-- ── GitHub 設定 ── -->
+  <details class="gh-panel" id="ghPanel">
+    <summary>⚙️ GitHub 自動存檔設定（通過的檔案自動上傳保存）</summary>
+    <div class="gh-body">
+      <div>
+        <label>Personal Access Token</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+      <div>
+        <label>Repository（Owner/Repo）</label>
+        <input type="text" id="ghRepo" placeholder="y1239051-commits/capital-plan-checker">
+      </div>
+      <div>
+        <label>存放資料夾路徑（可空白）</label>
+        <input type="text" id="ghFolder" placeholder="114年度/通過檔案">
+      </div>
+      <button class="gh-save" onclick="saveGH()">儲存設定</button>
+      <div class="gh-note">
+        ⚠ Token 僅存在本機瀏覽器（localStorage），不會傳送至任何伺服器。Token 需具備 <strong>repo 寫入權限</strong>。<br>
+        設定後，每次有單位「通過」時系統會自動呼叫 GitHub API 將 .ods 原始檔案上傳至您的 repository 存檔。
+      </div>
+    </div>
+  </details>
+
+  <!-- ── 進度儀表板 ── -->
+  <div class="db" id="dashboard">
+    <div class="db-hdr">
+      <h2>📊 各單位填報進度</h2>
+      <div class="db-prog-wrap">
+        <div class="db-prog-bar"><div class="db-prog-fill" id="dbFill" style="width:0%"></div></div>
+        <span class="db-prog-txt" id="dbTxt">0 / 31</span>
+      </div>
+    </div>
+    <div class="db-cols">
+      <div class="db-col col-ok">
+        <div class="db-col-hdr">✅ 已通過<span class="cnt" id="cntOk">0</span></div>
+        <div class="db-chips" id="chipsOk"></div>
+      </div>
+      <div class="db-col col-fail">
+        <div class="db-col-hdr">❌ 上傳未通過<span class="cnt" id="cntFail">0</span></div>
+        <div class="db-chips" id="chipsFail"></div>
+      </div>
+      <div class="db-col col-pend">
+        <div class="db-col-hdr">⬜ 尚未上傳<span class="cnt" id="cntPend">31</span></div>
+        <div class="db-chips" id="chipsPend"></div>
+      </div>
+    </div>
   </div>
 
+  <!-- ── 拖曳上傳 ── -->
   <div class="dz" id="dz">
-    <span class="dz-ico">📂</span>
-    <h2>將各單位回傳的 .ods 檔拖曳至此</h2>
-    <p>通過驗證的檔案將自動上傳至 GitHub <code style="background:var(--sf2);padding:1px 5px;border-radius:3px;font-size:11px">passed/</code> 資料夾保存</p>
-    <small>🔒 ODS 資料僅在本機瀏覽器處理，不會傳送至第三方</small>
-    <br>
-    <button class="pick-btn" id="pick-btn" disabled onclick="document.getElementById('fi').click()">⏳ 函式庫載入中...</button>
+    <input type="file" id="fi" multiple accept=".ods,.ODS">
+    <div class="dz-ico">📂</div>
+    <h2>拖曳各單位 .ods 檔至此，或點擊選取</h2>
+    <p>可一次選取多個檔案 · 重複上傳同一單位會自動覆蓋舊結果</p>
+    <small>🔒 所有驗證在本機瀏覽器完成，資料不會傳送至任何伺服器（GitHub 存檔除外）</small>
   </div>
-  <input type="file" id="fi" multiple accept=".ods,.ODS">
 
-  <div class="pg" id="pg">
-    <div class="pg-lbl" id="pg-lbl">正在處理...</div>
-    <div class="pg-bar"><div class="pg-fill" id="pg-fill"></div></div>
+  <div class="pgwrap" id="pw">
+    <div class="pglbl" id="pl">正在處理...</div>
+    <div class="pgbar"><div class="pgfill" id="pf"></div></div>
   </div>
 
   <div id="res" style="display:none">
-    <div class="sg">
-      <div class="sc s-blue"><div class="sc-lbl">載入單位數</div><div class="sc-val" id="sU">0</div></div>
-      <div class="sc s-blue"><div class="sc-lbl">計畫案總數</div><div class="sc-val" id="sC">0</div></div>
-      <div class="sc s-red" ><div class="sc-lbl">必須修正</div><div class="sc-val" id="sE">0</div></div>
-      <div class="sc s-amb" ><div class="sc-lbl">備註說明中</div><div class="sc-val" id="sW">0</div></div>
-      <div class="sc s-grn" ><div class="sc-lbl">已通過單位</div><div class="sc-val" id="sOK">0</div></div>
-      <div class="sc s-grn" ><div class="sc-lbl">已上傳 GitHub</div><div class="sc-val" id="sGH">0</div></div>
+    <div class="stat-grid">
+      <div class="stat s-blue"><div class="stat-lbl">已載入單位</div><div class="stat-val" id="sU">0</div></div>
+      <div class="stat s-blue"><div class="stat-lbl">計畫案總數</div><div class="stat-val" id="sC">0</div></div>
+      <div class="stat s-red"><div class="stat-lbl">月分配不符</div><div class="stat-val" id="sB">0</div></div>
+      <div class="stat s-purple"><div class="stat-lbl">元/千元混填</div><div class="stat-val" id="sU2">0</div></div>
+      <div class="stat s-amber"><div class="stat-lbl">必填缺漏案數</div><div class="stat-val" id="sM">0</div></div>
+      <div class="stat s-amber"><div class="stat-lbl">#DIV/0! 錯誤格</div><div class="stat-val" id="sD">0</div></div>
+      <div class="stat s-green"><div class="stat-lbl">完全正確單位</div><div class="stat-val" id="sOK">0</div></div>
+      <div class="stat s-blue"><div class="stat-lbl">GitHub 已存檔</div><div class="stat-val" id="sGH">0</div></div>
     </div>
     <div class="acts">
-      <button class="btn-p" onclick="exportAll()">📥 匯出全部報告</button>
-      <button class="btn-s" onclick="exportCSV()">📊 下載 CSV</button>
-      <button class="btn-s" onclick="clearAll()">🗑 清除</button>
+      <button class="btn-p" onclick="exportAll()">📥 匯出全部 HTML 報告</button>
+      <button class="btn-s" onclick="exportCSV()">📊 下載錯誤清單 CSV</button>
+      <button class="btn-s" onclick="clearAll()">🗑 清除全部重新開始</button>
     </div>
-    <div class="sec-hdr">
-      <h2>各單位檢核明細</h2>
-      <span class="badge red" id="eBadge"></span>
-      <span class="badge grn" id="okBadge"></span>
-    </div>
-    <div id="cards"></div>
-  </div>
-</div>
-
-<!-- ══════ TAB 2 進度追蹤 ══════ -->
-<div class="pane" id="pane-progress">
-  <div class="prog-summary">
-    <div class="prog-box passed">
-      <div class="pnum" id="p-passed">0</div>
-      <div class="plbl">✅ 已通過並上傳</div>
-    </div>
-    <div class="prog-box failed">
-      <div class="pnum" id="p-failed">0</div>
-      <div class="plbl">❌ 已回傳未通過</div>
-    </div>
-    <div class="prog-box pending">
-      <div class="pnum" id="p-pending">31</div>
-      <div class="plbl">⏳ 尚未回傳</div>
-    </div>
-  </div>
-  <div class="prog-bar-outer"><div class="prog-bar-inner" id="prog-bar" style="width:0%"></div></div>
-  <div class="prog-pct" id="prog-pct">0 / 31 單位完成（0%）</div>
-
-  <div class="filter-row">
-    <button class="btn-s active" id="f-all"     onclick="setFilter('all',this)">全部 (31)</button>
-    <button class="btn-s"        id="f-passed"  onclick="setFilter('passed',this)">✅ 已通過</button>
-    <button class="btn-s"        id="f-failed"  onclick="setFilter('failed',this)">❌ 未通過</button>
-    <button class="btn-s"        id="f-pending" onclick="setFilter('pending',this)">⏳ 未回傳</button>
-    <button class="btn-s ml"                    onclick="syncFromGitHub()">🔄 從 GitHub 同步</button>
-  </div>
-  <div class="ut-grid" id="ut-grid"></div>
-</div>
-
-<!-- ══════ TAB 3 設定 ══════ -->
-<div class="pane" id="pane-settings">
-<div class="set-form">
-
-  <div class="set-box">
-    <h3>🔑 GitHub 連線設定</h3>
-    <div class="set-group">
-      <label class="set-label">GitHub 帳號（Username）</label>
-      <input class="set-input" id="gh-user" placeholder="例如：yilan-planning">
-    </div>
-    <div class="set-group">
-      <label class="set-label">Repository 名稱</label>
-      <input class="set-input" id="gh-repo" placeholder="例如：capital-check">
-    </div>
-    <div class="set-group">
-      <label class="set-label">Personal Access Token（PAT）</label>
-      <input class="set-input" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-      <div class="set-hint">
-        建立方式：GitHub → 右上角頭像 → Settings → Developer settings →
-        Personal access tokens → Tokens (classic) → Generate new token<br>
-        勾選 <code>repo</code> 權限後產生。Token 僅存在你的瀏覽器 localStorage，不會傳送到任何地方。
+    <div class="sec">
+      <div class="sec-hdr">
+        <h2>各單位檢核明細</h2>
+        <span class="badge red" id="eBadge"></span>
+        <span class="badge green" id="okBadge"></span>
       </div>
-    </div>
-    <button class="set-save" onclick="saveSettings()">💾 儲存設定</button>
-    <div class="set-ok" id="set-ok">✅ 設定已儲存</div>
-  </div>
-
-  <div class="set-box">
-    <h3>ℹ️ 系統狀態</h3>
-    <div class="stat-row">
-      <div>SheetJS 函式庫</div><div id="st-lib" style="color:var(--tx3)">載入中...</div>
-      <div>GitHub 設定</div><div id="st-gh"  style="color:var(--tx3)">未設定</div>
-      <div>本地進度記錄</div><div id="st-cnt">0 筆</div>
-    </div>
-    <button class="btn-s" style="margin-top:12px;font-size:11px" onclick="if(confirm('確定清除本地所有進度記錄？'))clearProgress()">清除本地進度記錄</button>
-  </div>
-
-  <div class="set-box">
-    <h3>📌 GitHub 使用說明</h3>
-    <div style="font-size:12px;color:var(--tx2);line-height:1.85">
-      <p>通過驗證的 ODS 檔案自動上傳到 <code>passed/</code> 資料夾。若同單位重新上傳並通過，新版覆蓋舊版，GitHub 保留所有版本歷史。</p>
-      <p style="margin-top:10px"><strong style="color:var(--tx)">建立 Repository 步驟：</strong></p>
-      <p>① github.com → 右上角 <strong>＋</strong> → New repository → 名稱填 <code>capital-check</code>，選 Public，勾 Add README → Create</p>
-      <p>② Settings → Pages → Branch: main / root → Save</p>
-      <p>③ Add file → Upload files → 上傳本工具（改名為 <code>index.html</code>）</p>
-      <p style="margin-top:8px">完成後即可透過 <code>https://帳號.github.io/capital-check/</code> 讓全縣使用。</p>
+      <div id="cards"></div>
     </div>
   </div>
 
-</div>
-</div>
+</div><!-- /wrap -->
 
 <script>
-/* ════════════════════════════════════════
-   CONSTANTS
-════════════════════════════════════════ */
-var UNITS = [
+/* ═══════════════════════════════════════════════
+   預定單位清單（共 31 個）
+═══════════════════════════════════════════════ */
+var UNIT_LIST=[
   '秘書處','計畫處','人事處','政風處','交通處','民政處','工旅處','水資處',
   '建設處','教育處','農業處','社會處','地政處','三星戶所','冬山戶政',
   '動防所','原民所','宜蘭地政','家教中心','文化局','樹藝所','海洋所',
   '消防局','環保局','礁溪戶政','羅東地政','衛生局','警察局','財稅局',
   '長照所','體育場'
 ];
-var TOTAL = UNITS.length; // 31
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    STATE
-════════════════════════════════════════ */
-var ALL = [];
-var XLSX_READY = false;
-var FILTER = 'all';
-var PROGRESS = {};
+═══════════════════════════════════════════════ */
+var ALL=[];           // 完整結果陣列（供渲染詳細卡片）
+var UNIT_MAP={};      // { unitName: { result, ab, filename, ghStatus, ghUrl } }
 
-/* ════════════════════════════════════════
-   BOOT  (single DOMContentLoaded)
-════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', function () {
+/* ═══════════════════════════════════════════════
+   GITHUB 設定
+═══════════════════════════════════════════════ */
+function saveGH(){
+  var t=g('ghToken').value.trim();
+  var r=g('ghRepo').value.trim();
+  var f=g('ghFolder').value.trim();
+  localStorage.setItem('gh_token',t);
+  localStorage.setItem('gh_repo',r);
+  localStorage.setItem('gh_folder',f);
+  updateGHDot();
+  alert('✅ GitHub 設定已儲存！\n\n下次有單位通過時會自動上傳至：\n'+r+(f?'/'+f:''));
+}
+function loadGH(){
+  var t=localStorage.getItem('gh_token')||'';
+  var r=localStorage.getItem('gh_repo')||'';
+  var f=localStorage.getItem('gh_folder')||'';
+  g('ghToken').value=t;
+  g('ghRepo').value=r;
+  g('ghFolder').value=f;
+  updateGHDot();
+}
+function getGHCfg(){
+  return{
+    token:localStorage.getItem('gh_token')||'',
+    repo:localStorage.getItem('gh_repo')||'',
+    folder:localStorage.getItem('gh_folder')||''
+  };
+}
+function updateGHDot(){
+  var cfg=getGHCfg();
+  var dot=g('ghDot');
+  if(cfg.token&&cfg.repo){dot.className='gh-status-dot ok';dot.title='GitHub 已設定：'+cfg.repo;}
+  else{dot.className='gh-status-dot';dot.title='GitHub 未設定';}
+}
 
-  /* Pre-fill settings */
-  var u = ls('gh_user'), r = ls('gh_repo'), t = ls('gh_token');
-  if (u) g('gh-user').value = u;
-  if (r) g('gh-repo').value = r;
-  if (t) g('gh-token').value = t;
+/* ═══════════════════════════════════════════════
+   GITHUB 上傳
+═══════════════════════════════════════════════ */
+async function uploadToGitHub(unit,filename,ab){
+  var cfg=getGHCfg();
+  if(!cfg.token||!cfg.repo)return{ok:false,msg:'GitHub 未設定'};
 
-  /* Load progress */
-  loadProgress();
-  renderProgress();
-  refreshStatusPanel();
+  var folder=cfg.folder.replace(/^\/|\/$/g,'');
+  var filePath=(folder?folder+'/':'')+filename;
+  var parts=cfg.repo.split('/');
+  if(parts.length<2)return{ok:false,msg:'Repository 格式錯誤（應為 Owner/Repo）'};
+  var owner=parts[0],repo=parts.slice(1).join('/');
 
-  /* File input */
-  g('fi').addEventListener('change', function (e) {
-    processFiles(Array.from(e.target.files));
-    e.target.value = '';
+  var apiUrl='https://api.github.com/repos/'+owner+'/'+repo+'/contents/'+encodeURIComponent(filePath).replace(/%2F/g,'/');
+
+  // base64 encode
+  var bytes=new Uint8Array(ab);
+  var binary='',chunk=8192;
+  for(var i=0;i<bytes.length;i+=chunk){
+    binary+=String.fromCharCode.apply(null,bytes.slice(i,Math.min(i+chunk,bytes.length)));
+  }
+  var b64=btoa(binary);
+
+  // Check existing (to get SHA for update)
+  var sha=null;
+  try{
+    var getRes=await fetch(apiUrl,{headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}});
+    if(getRes.ok){var d=await getRes.json();sha=d.sha;}
+  }catch(e){}
+
+  var body={
+    message:'✅ '+unit+' 資本門計畫通過檢核 ('+new Date().toLocaleString('zh-TW')+')',
+    content:b64,
+    branch:'main'
+  };
+  if(sha)body.sha=sha;
+
+  try{
+    var res=await fetch(apiUrl,{
+      method:'PUT',
+      headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(res.ok){
+      var json=await res.json();
+      return{ok:true,url:json.content&&json.content.html_url};
+    }else{
+      var err=await res.json();
+      return{ok:false,msg:'HTTP '+res.status+': '+(err.message||'未知錯誤')};
+    }
+  }catch(e){
+    return{ok:false,msg:String(e)};
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   UNIT NAME MATCHING
+═══════════════════════════════════════════════ */
+function matchUnit(fn,parsedUnitName){
+  // 1. Use parsed unit name if it matches a known unit
+  if(parsedUnitName){
+    for(var i=0;i<UNIT_LIST.length;i++){
+      if(parsedUnitName.indexOf(UNIT_LIST[i])>=0)return UNIT_LIST[i];
+    }
+  }
+  // 2. Scan filename for unit name
+  for(var i=0;i<UNIT_LIST.length;i++){
+    if(fn.indexOf(UNIT_LIST[i])>=0)return UNIT_LIST[i];
+  }
+  // 3. Fallback
+  return parsedUnitName||guessName(fn);
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+(function boot(){
+  loadGH();
+  renderDashboard();
+  var dz=g('dz'),fi=g('fi');
+  fi.addEventListener('change',function(e){go(Array.from(e.target.files));});
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+  dz.addEventListener('drop',function(e){
+    e.preventDefault();dz.classList.remove('over');
+    go(Array.from(e.dataTransfer.files).filter(function(f){return/\.ods$/i.test(f.name);}));
   });
+})();
 
-  /* Drop zone */
-  var dz = g('dz');
-  dz.addEventListener('dragenter', function (e) { e.preventDefault(); e.stopPropagation(); dz.classList.add('over'); });
-  dz.addEventListener('dragover',  function (e) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'copy'; dz.classList.add('over'); });
-  dz.addEventListener('dragleave', function (e) { e.preventDefault(); e.stopPropagation(); if (!dz.contains(e.relatedTarget)) dz.classList.remove('over'); });
-  dz.addEventListener('drop', function (e) {
-    e.preventDefault(); e.stopPropagation(); dz.classList.remove('over');
-    var files = Array.from(e.dataTransfer.files).filter(function (f) { return /\.ods$/i.test(f.name); });
-    if (!files.length) { alert('請拖曳 .ods 格式的檔案'); return; }
-    processFiles(files);
-  });
+/* ═══════════════════════════════════════════════
+   PROCESS FILES（累積模式：同一單位重複上傳會覆蓋）
+═══════════════════════════════════════════════ */
+function go(files){
+  if(!files.length)return;
+  var pw=g('pw'),pf=g('pf'),pl=g('pl');
+  pw.classList.add('show');
+  var i=0,newAbs={};
 
-  /* Load SheetJS */
-  loadJS(
-    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-    onXLSXReady,
-    function () { loadJS('./xlsx.full.min.js', onXLSXReady, onXLSXError); }
-  );
-});
-
-function loadJS(src, ok, fail) {
-  var s = document.createElement('script');
-  s.src = src; s.onload = ok; s.onerror = fail;
-  document.head.appendChild(s);
-}
-
-function onXLSXReady() {
-  XLSX_READY = true;
-  var bar = g('lib-bar'); bar.className = 'ready';
-  g('lib-msg').textContent = '✓ SheetJS 已載入，可以開始上傳 ODS 檔案';
-  var btn = g('pick-btn'); btn.disabled = false; btn.textContent = '📂 點此選取 .ods 檔案';
-  refreshStatusPanel();
-}
-
-function onXLSXError() {
-  var bar = g('lib-bar'); bar.className = 'error';
-  g('lib-msg').innerHTML = '⚠ 無法載入函式庫。請下載 <a href="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" target="_blank">xlsx.full.min.js</a> 放在本 HTML 同一資料夾後重新開啟。';
-  bar.style.display = 'flex';
-  refreshStatusPanel();
-}
-
-/* ════════════════════════════════════════
-   TABS
-════════════════════════════════════════ */
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(function (b) { b.classList.remove('on'); });
-  btn.classList.add('on');
-  document.querySelectorAll('.pane').forEach(function (p) { p.classList.remove('on'); });
-  g('pane-' + name).classList.add('on');
-  if (name === 'progress') renderProgress();
-  if (name === 'settings') refreshStatusPanel();
-}
-
-/* ════════════════════════════════════════
-   PROCESS FILES
-════════════════════════════════════════ */
-function processFiles(files) {
-  if (!XLSX_READY) { alert('函式庫尚未載入，請稍候再試。'); return; }
-  if (!files.length) return;
-
-  ALL = [];
-  var pg = g('pg'), fill = g('pg-fill'), lbl = g('pg-lbl');
-  pg.classList.add('on');
-  g('res').style.display = 'none';
-  var i = 0;
-
-  (function next() {
-    if (i >= files.length) {
-      renderResults(); // renders cards first, THEN triggers uploads
-      pg.classList.remove('on');
+  (function next(){
+    if(i>=files.length){
+      // Merge new results into UNIT_MAP and ALL
+      Object.keys(newAbs).forEach(function(un){
+        var entry=newAbs[un];
+        UNIT_MAP[un]=entry;
+        // Remove old ALL entry for this unit
+        ALL=ALL.filter(function(r){return r._unitKey!==un;});
+        // Add new
+        entry.result._unitKey=un;
+        ALL.push(entry.result);
+        // If passed → upload to GitHub
+        if(!entry.result.parseErr&&!hasError(entry.result)){
+          entry.ghStatus='uploading';
+          uploadToGitHub(un,entry.filename,entry.ab).then(function(res){
+            entry.ghStatus=res.ok?'done':'err';
+            entry.ghUrl=res.url||'';
+            entry.ghMsg=res.msg||'';
+            render();
+          });
+        }
+      });
+      render();
+      pw.classList.remove('show');
       return;
     }
-    var f = files[i++];
-    lbl.textContent = '解析：' + f.name + ' (' + i + '/' + files.length + ')';
-    fill.style.width = (i / files.length * 100) + '%';
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      try { ALL.push(parseODS(f.name, e.target.result, f)); }
-      catch (err) { ALL.push(errResult(f.name, err.message)); }
-      setTimeout(next, 15);
+    var f=files[i++];
+    pl.textContent='解析中：'+f.name+'（'+i+'/'+files.length+'）';
+    pf.style.width=(i/files.length*100)+'%';
+    var r=new FileReader();
+    r.onload=function(e){
+      var ab=e.target.result;
+      var result;
+      try{result=parse(f.name,ab);}
+      catch(err){result={fn:f.name,unit:guessName(f.name),sheet:'—',parseErr:err.message,cases:[],be:[],me:[],de:0,ue:[]};}
+      var un=matchUnit(f.name,result.unit);
+      result.unit=un;
+      newAbs[un]={result:result,ab:ab,filename:f.name,ghStatus:null,ghUrl:'',ghMsg:''};
+      setTimeout(next,15);
     };
-    reader.onerror = function () { ALL.push(errResult(f.name, '檔案讀取失敗')); setTimeout(next, 15); };
-    reader.readAsArrayBuffer(f);
+    r.readAsArrayBuffer(f);
   })();
 }
 
-function errResult(fn, msg) {
-  return { fn: fn, unit: guessName(fn), sheet: '—', parseErr: msg, fileObj: null,
-           cases: [], errs: { se:[], fe:[], fw:[], ba:[], me:[], ue:[], de:0 } };
+function hasError(r){
+  return r.be.length+r.me.length+r.ue.length+(r.parseErr?1:0)>0;
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    PARSE ODS
-════════════════════════════════════════ */
-function parseODS(fn, ab, fileObj) {
-  var wb = XLSX.read(new Uint8Array(ab), { type: 'array', cellFormula: false, raw: true, cellDates: false });
-
-  /* Sheet selection — exclude ALL sheets with "範例" */
-  var sheets = wb.SheetNames;
-  var cands = sheets.filter(function (s) { return s.indexOf('範例') < 0; });
-  if (!cands.length) throw new Error('找不到資料工作表（所有工作表均含「範例」）');
-  var withData = cands.filter(function (s) { return s.indexOf('空白') < 0; });
-  var chosen = (withData.length ? withData : cands).slice(-1)[0];
-
-  var ws = wb.Sheets[chosen];
-  var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
-
-  /* Count #DIV/0! */
-  var de = 0;
-  var rng = XLSX.utils.decode_range(ws['!ref'] || 'A1:Z50');
-  for (var R = rng.s.r; R <= rng.e.r; R++)
-    for (var C = rng.s.c; C <= rng.e.c; C++) {
-      var cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
-      if (cell && cell.t === 'e') de++;
+═══════════════════════════════════════════════ */
+function parse(fn,ab){
+  var wb=XLSX.read(new Uint8Array(ab),{type:'array',cellFormula:false,raw:true,cellDates:false});
+  var sheets=wb.SheetNames;
+  var c=sheets.filter(function(s){return s.indexOf('範例')<0;});
+  if(!c.length)c=sheets;
+  var p=c.filter(function(s){return s.indexOf('空白')<0;});
+  var ns=p.filter(function(s){return s.indexOf('送主計')<0;});
+  var shName=(ns.length?ns:p.length?p:c).slice(-1)[0];
+  var ws=wb.Sheets[shName];
+  var raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+  var de=0;
+  var rng=XLSX.utils.decode_range(ws['!ref']||'A1:Z50');
+  for(var R=rng.s.r;R<=rng.e.r;R++)for(var C=rng.s.c;C<=rng.e.c;C++){var cell=ws[XLSX.utils.encode_cell({r:R,c:C})];if(cell&&cell.t==='e')de++;}
+  var hr=-1;
+  for(var i=0;i<Math.min(raw.length,12);i++){var row=raw[i];if(row&&row.some(function(c){return c&&String(c).indexOf('項次')>=0;})&&row.some(function(c){return c&&String(c).indexOf('計畫名稱')>=0;})){hr=i;break;}}
+  if(hr<0)throw new Error('找不到表頭列（應含「項次」與「計畫名稱」欄）');
+  var hdrs=raw[hr];
+  var cm=colMap(hdrs);
+  var cases=[],be=[],me=[],ue=[],unitName='';
+  var STOP=['500萬','合計','小計','註1','NOTE'];
+  var EXEMPT=['補助款不需發包','規劃設計案','無需發包','不需發包','無開工','規劃案'];
+  function isEx(v){return v&&EXEMPT.some(function(k){return String(v).indexOf(k)>=0;});}
+  for(var ri=hr+1;ri<raw.length;ri++){
+    var row=raw[ri];if(!row)continue;
+    var c0=nzStr(row[0]);
+    if(STOP.some(function(s){return c0.indexOf(s)>=0;}))break;
+    var cn=nzStr(row,cm.idx),nm=nzStr(row,cm.name);
+    if(!cn&&!nm)continue;
+    if(!cn)continue;
+    var un=nzStr(row,cm.unit);if(un)unitName=un;
+    var budget=numVal(row,cm.bud);
+    var mths=[],ms=0;
+    for(var m=0;m<12;m++){var mv=numVal(row,cm.mb+m);mths.push(mv);ms+=mv;}
+    var decided=nzStr(row,cm.dec),start=nzStr(row,cm.st),dur=nzStr(row,cm.dur),remark=nzStr(row,cm.rem);
+    cases.push({cn:cn,nm:nm,budget:budget,mths:mths,ms:ms,decided:decided,start:start,dur:dur,remark:remark});
+    if(budget!==0){
+      var diff=ms-budget,allZ=mths.every(function(v){return v===0;}),ratio=budget>0?ms/budget:0;
+      if(Math.abs(ratio-1000)<5&&ms>0){ue.push({cn:cn,nm:nm,budget:budget,ms:ms});}
+      else if(allZ&&budget>0){be.push({cn:cn,nm:nm,budget:budget,ms:0,diff:-budget,type:'月分配全為0'});}
+      else if(Math.abs(diff)>0.5){be.push({cn:cn,nm:nm,budget:budget,ms:ms,diff:diff,type:diff>0?'超出預算':'分配不足'});}
     }
-
-  /* Find header row */
-  var hr = -1;
-  for (var i = 0; i < Math.min(raw.length, 12); i++) {
-    var rw = raw[i];
-    if (rw && rw.some(function (c) { return c && String(c).indexOf('項次') >= 0; })
-           && rw.some(function (c) { return c && String(c).indexOf('計畫名稱') >= 0; })) {
-      hr = i; break;
-    }
+    var miss=[];
+    if(!decided&&!isEx(decided)&&!isEx(remark))miss.push('預計決標日');
+    if(!start&&!isEx(start)&&!isEx(remark))miss.push('預計開工日');
+    if(!dur&&!isEx(dur)&&!isEx(remark))miss.push('履約期間');
+    if(miss.length)me.push({cn:cn,nm:nm,miss:miss});
   }
-  if (hr < 0) throw new Error('找不到表頭列（應含「項次」與「計畫名稱」）');
-
-  var cm = buildColMap(raw[hr]);
-  var STOP = ['500萬', '合計', '小計', '註1'];
-  var cases = [], unitName = '';
-
-  for (var ri = hr + 1; ri < raw.length; ri++) {
-    var row = raw[ri]; if (!row) continue;
-    var c0 = sz(row[0]);
-    if (STOP.some(function (s) { return c0.indexOf(s) >= 0; })) break;
-    var cn = sz(row, cm.idx), nm = sz(row, cm.name);
-    if (!cn && !nm) continue;
-    var un = sz(row, cm.unit); if (un) unitName = un;
-    var bud = nv(row, cm.bud), cen = nv(row, cm.cen), loc = nv(row, cm.loc);
-    var decided = sz(row, cm.dec), start = sz(row, cm.st);
-    var dur = sz(row, cm.dur), remark = sz(row, cm.rem);
-    var mths = [], ms = 0;
-    for (var m = 0; m < 12; m++) { var mv = nv(row, cm.mb + m); mths.push(mv); ms += mv; }
-    cases.push({ cn: cn, nm: nm, bud: bud, cen: cen, loc: loc,
-                 decided: decided, start: start, dur: dur, remark: remark, mths: mths, ms: ms });
-  }
-
-  if (!unitName) unitName = guessName(fn);
-  var errs = validate(cases); errs.de = de;
-  return { fn: fn, unit: unitName, sheet: chosen, parseErr: null, fileObj: fileObj, cases: cases, errs: errs };
+  if(!unitName)unitName=guessName(fn);
+  return{fn:fn,unit:unitName,sheet:shName,parseErr:null,cases:cases,be:be,me:me,de:de,ue:ue};
 }
 
-function buildColMap(hdrs) {
-  var m = { mb:14, idx:1, name:2, unit:0, bud:5, cen:6, loc:7, dec:8, st:10, dur:12, rem:13 };
-  hdrs.forEach(function (h, i) {
-    var s = h ? String(h) : '';
-    if (s.indexOf('單位') >= 0 && s.indexOf('計') < 0 && s.indexOf('分') < 0) m.unit = i;
-    if (s.indexOf('項次') >= 0) m.idx = i;
-    if (s.indexOf('計畫名稱') >= 0) m.name = i;
-    if (s.indexOf('(1)') >= 0 && s.indexOf('預算') >= 0) m.bud = i;
-    if (s.indexOf('央款') >= 0 && s.indexOf('(2)') >= 0) m.cen = i;
-    if (s.indexOf('縣款') >= 0 && s.indexOf('(3)') >= 0) m.loc = i;
-    if (s.indexOf('預計決標') >= 0) m.dec = i;
-    if (s.indexOf('預計開工') >= 0) m.st = i;
-    if (s.indexOf('履約期間') >= 0) m.dur = i;
-    if (s.indexOf('備註') >= 0 && m.rem === 13) m.rem = i;
-    if (s.indexOf('分配數1月') >= 0) m.mb = i;
+function colMap(hdrs){
+  var m={mb:14,idx:null,name:null,unit:null,bud:null,dec:null,st:null,dur:null,rem:null};
+  hdrs.forEach(function(h,i){
+    var s=h?String(h):'';
+    if(s.indexOf('單位')>=0&&s.indexOf('計')<0)m.unit=i;
+    if(s.indexOf('項次')>=0)m.idx=i;
+    if(s.indexOf('計畫名稱')>=0)m.name=i;
+    if(s.indexOf('本年度預算數(1)')>=0)m.bud=i;
+    if(s.indexOf('預計決標日')>=0)m.dec=i;
+    if(s.indexOf('預計開工日')>=0)m.st=i;
+    if(s.indexOf('履約期間')>=0)m.dur=i;
+    if(s.indexOf('備註')>=0)m.rem=i;
+    if(s.indexOf('分配數1月')>=0&&m.mb===14)m.mb=i;
   });
   return m;
 }
 
-/* ════════════════════════════════════════
-   VALIDATE
-════════════════════════════════════════ */
-function validate(cases) {
-  var se = [], fe = [], fw = [], ba = [], me = [], ue = [];
+function nzStr(rowOrVal,col){
+  var v=(col!==undefined&&col!==null&&Array.isArray(rowOrVal))?rowOrVal[col]:rowOrVal;
+  if(v===null||v===undefined)return'';
+  var s=String(v).trim();return(s===''||s==='null')?'':s;
+}
+function numVal(row,col){
+  if(col===undefined||col===null)return 0;
+  var v=Array.isArray(row)?row[col]:null;
+  if(v===null||v===undefined)return 0;
+  var n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;
+}
+function guessName(fn){return fn.replace(/\.ods$/i,'').replace(/^\d+[._\s]*/,'').replace(/ok$/i,'').replace(/OK$/,'').trim();}
 
-  /* 1. 項次 sequential check */
-  var mainNums = [];
-  cases.forEach(function (c) { if (/^\d+$/.test(c.cn)) mainNums.push(parseInt(c.cn, 10)); });
-  var seqOk = mainNums.length > 0;
-  for (var i = 0; i < mainNums.length; i++) { if (mainNums[i] !== i + 1) { seqOk = false; break; } }
-  if (!seqOk) se.push({ found: mainNums, expected: mainNums.map(function (_, j) { return j + 1; }) });
-
-  cases.forEach(function (c) {
-    var isMain = /^\d+$/.test(c.cn);
-    var hasRem = c.remark && c.remark.trim().length > 0;
-
-    /* 2. Required fields (main plans only) */
-    if (isMain) {
-      var miss = [];
-      if (!c.decided) miss.push('預計決標日');
-      if (!c.start)   miss.push('預計開工日');
-      if (!c.dur)     miss.push('履約期間');
-      if (miss.length) (hasRem ? fw : fe).push({ cn: c.cn, nm: c.nm, miss: miss, remark: c.remark });
-    }
-
-    /* 3. Budget: (1) = (2) + (3) */
-    if (c.bud > 0) {
-      var calc = (c.cen || 0) + (c.loc || 0);
-      if (Math.abs(c.bud - calc) > 0.5)
-        ba.push({ cn: c.cn, nm: c.nm, bud: c.bud, cen: c.cen || 0, loc: c.loc || 0, diff: c.bud - calc });
-    }
-
-    /* 4. Monthly distribution */
-    if (c.bud !== 0) {
-      var ratio = c.bud > 0 ? c.ms / c.bud : 0;
-      var allZ = c.mths.every(function (v) { return v === 0; });
-      if (c.ms > 0 && Math.abs(ratio - 1000) < 5) {
-        ue.push({ cn: c.cn, nm: c.nm, bud: c.bud, ms: c.ms });
-      } else if (allZ && c.bud > 0) {
-        me.push({ cn: c.cn, nm: c.nm, bud: c.bud, ms: 0, diff: -c.bud, type: '月分配全為0' });
-      } else if (Math.abs(c.ms - c.bud) > 0.5) {
-        me.push({ cn: c.cn, nm: c.nm, bud: c.bud, ms: c.ms, diff: c.ms - c.bud,
-                  type: c.ms > c.bud ? '超出預算' : '分配不足' });
-      }
+/* ═══════════════════════════════════════════════
+   RENDER DASHBOARD（進度儀表板）
+═══════════════════════════════════════════════ */
+function renderDashboard(){
+  var okUnits=[],failUnits=[],pendUnits=[];
+  UNIT_LIST.forEach(function(un){
+    var entry=UNIT_MAP[un];
+    if(!entry){pendUnits.push(un);}
+    else if(!entry.result.parseErr&&!hasError(entry.result)){okUnits.push(un);}
+    else{failUnits.push(un);}
+  });
+  // Also include uploaded units not in UNIT_LIST
+  Object.keys(UNIT_MAP).forEach(function(un){
+    if(UNIT_LIST.indexOf(un)<0){
+      var entry=UNIT_MAP[un];
+      if(!entry.result.parseErr&&!hasError(entry.result))okUnits.push(un);
+      else failUnits.push(un);
     }
   });
 
-  return { se: se, fe: fe, fw: fw, ba: ba, me: me, ue: ue };
+  var total=UNIT_LIST.length;
+  var done=okUnits.length;
+  var pct=Math.round(done/total*100);
+  g('dbFill').style.width=pct+'%';
+  g('dbTxt').textContent=done+' / '+total;
+  setText('cntOk',okUnits.length);
+  setText('cntFail',failUnits.length);
+  setText('cntPend',pendUnits.length);
+
+  // Render chips
+  g('chipsOk').innerHTML=okUnits.map(function(un){
+    var e=UNIT_MAP[un];
+    var ghBadge='';
+    if(e&&e.ghStatus==='uploading')ghBadge='<span class="chip-gh" title="上傳中">⏳</span>';
+    else if(e&&e.ghStatus==='done')ghBadge='<span class="chip-gh" title="GitHub 已存檔">☁️</span>';
+    else if(e&&e.ghStatus==='err')ghBadge='<span class="chip-gh" title="GitHub 上傳失敗">⚠️</span>';
+    return'<span class="chip ok">✓ '+esc(un)+ghBadge+'</span>';
+  }).join('');
+
+  g('chipsFail').innerHTML=failUnits.map(function(un){
+    var idx=ALL.findIndex(function(r){return r._unitKey===un;});
+    var onclick=idx>=0?'onclick="scrollToCard('+idx+')"':'';
+    return'<span class="chip fail" '+onclick+' title="點擊查看詳情">✗ '+esc(un)+'</span>';
+  }).join('');
+
+  g('chipsPend').innerHTML=pendUnits.map(function(un){
+    return'<span class="chip pend">'+esc(un)+'</span>';
+  }).join('');
+
+  // Update GH saved count
+  var ghDone=Object.values(UNIT_MAP).filter(function(e){return e.ghStatus==='done';}).length;
+  setText('sGH',ghDone);
 }
 
-function mustCount(r) {
-  var e = r.errs;
-  return e.se.length + e.fe.length + e.ba.length + e.me.length + e.ue.length + (r.parseErr ? 1 : 0);
+function scrollToCard(i){
+  var el=g('uc'+i);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'start'});var bd=g('bd'+i);var ch=g('ch'+i);if(bd)bd.classList.add('open');if(ch)ch.classList.add('open');}
 }
 
-/* ════════════════════════════════════════
-   RENDER RESULTS
-════════════════════════════════════════ */
-function renderResults() {
-  g('res').style.display = 'block';
-  var tC = 0, tE = 0, tW = 0, nOk = 0;
-  ALL.forEach(function (r) {
-    tC += r.cases.length;
-    var must = mustCount(r);
-    tE += must; tW += r.errs.fw.length;
-    if (!must) nOk++;
+/* ═══════════════════════════════════════════════
+   RENDER（主渲染）
+═══════════════════════════════════════════════ */
+function render(){
+  g('res').style.display='block';
+  var tC=0,tB=0,tM=0,tD=0,tU=0,nOk=0,nErr=0;
+  ALL.forEach(function(r){
+    tC+=r.cases.length;tB+=r.be.length;tM+=r.me.length;tD+=r.de;tU+=r.ue.length;
+    hasError(r)?nErr++:nOk++;
   });
-  ALL.sort(function (a, b) { return errScore(b) - errScore(a); });
-
-  setText('sU', ALL.length); setText('sC', tC);
-  setText('sE', tE); setText('sW', tW);
-  setText('sOK', nOk); setText('sGH', 0);
-  g('eBadge').textContent = (ALL.length - nOk) + ' 個單位有問題';
-  g('okBadge').textContent = nOk + ' 個單位通過';
-
-  /* Render cards first */
-  var html = '';
-  ALL.forEach(function (r, i) { html += cardHtml(r, i); });
-  g('cards').innerHTML = html || '<div style="text-align:center;padding:36px;color:var(--tx3)">無資料</div>';
-
-  /* Update local progress */
-  ALL.forEach(function (r) {
-    var key = matchUnit(r.unit);
-    if (!key) return;
-    var errList = [];
-    if (r.errs.se.length) errList.push('項次錯誤');
-    if (r.errs.fe.length) errList.push('必填缺漏×' + r.errs.fe.length);
-    if (r.errs.ba.length) errList.push('預算加總×' + r.errs.ba.length);
-    if (r.errs.me.length) errList.push('月分配×' + r.errs.me.length);
-    if (r.errs.ue.length) errList.push('元/千元×' + r.errs.ue.length);
-    PROGRESS[key] = { status: mustCount(r) ? 'failed' : 'passed',
-                      time: new Date().toLocaleString('zh-TW'), file: r.fn, errors: errList };
+  ALL.sort(function(a,b){
+    var sa=scoreResult(a),sb=scoreResult(b);return sb-sa;
   });
-  saveProgress();
-
-  /* NOW trigger uploads — cards already in DOM so gh-status divs exist */
-  ALL.forEach(function (r, i) {
-    if (!mustCount(r) && r.fileObj) uploadToGitHub(r, i);
-  });
+  setText('sU',Object.keys(UNIT_MAP).length);setText('sC',tC);setText('sB',tB);
+  setText('sU2',tU);setText('sM',tM);setText('sD',tD);setText('sOK',nOk);
+  setText('eBadge',nErr+' 個單位有問題');setText('okBadge',nOk+' 個單位通過');
+  var html='';ALL.forEach(function(r,i){html+=cardHtml(r,i);});
+  g('cards').innerHTML=html;
+  renderDashboard();
 }
 
-function errScore(r) {
-  var e = r.errs;
-  return (r.parseErr ? 100 : 0) + e.se.length * 10 + e.ue.length * 8 +
-         e.fe.length * 5 + e.ba.length * 3 + e.me.length * 2 + e.fw.length;
+function scoreResult(r){
+  return(r.parseErr?100:0)+r.ue.length*8+r.be.length*4+r.me.length*2+r.de;
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    CARD HTML
-════════════════════════════════════════ */
-function cardHtml(r, idx) {
-  var e = r.errs;
-  var must = mustCount(r), warn = e.fw.length;
-  var cls = !must && !warn ? 'ok' : must ? 'err' : 'warn';
+═══════════════════════════════════════════════ */
+function cardHtml(r,i){
+  var isErr=hasError(r);
+  var cls=!isErr?'ok':((r.me.length&&!r.be.length&&!r.ue.length&&!r.parseErr)?'warn':'err');
+  var tags='';
+  if(r.parseErr)tags+='<span class="tag red">解析失敗</span>';
+  if(r.ue.length)tags+='<span class="tag purple">元/千元×'+r.ue.length+'</span>';
+  if(r.be.length)tags+='<span class="tag red">月分配×'+r.be.length+'</span>';
+  if(r.me.length)tags+='<span class="tag amber">缺填×'+r.me.length+'</span>';
+  if(r.de>0)tags+='<span class="tag blue">#DIV/0!×'+r.de+'</span>';
+  if(!isErr)tags+='<span class="tag green">✓ 全部通過</span>';
 
-  var tags = '';
-  if (r.parseErr)  tags += '<span class="tag red">解析失敗</span>';
-  if (e.se.length) tags += '<span class="tag red">項次錯誤</span>';
-  if (e.ue.length) tags += '<span class="tag pur">元/千元×' + e.ue.length + '</span>';
-  if (e.fe.length) tags += '<span class="tag red">必填×' + e.fe.length + '</span>';
-  if (e.fw.length) tags += '<span class="tag amb">備註×' + e.fw.length + '</span>';
-  if (e.ba.length) tags += '<span class="tag red">預算×' + e.ba.length + '</span>';
-  if (e.me.length) tags += '<span class="tag red">月分配×' + e.me.length + '</span>';
-  if (e.de > 0)    tags += '<span class="tag blue">#DIV/0!×' + e.de + '</span>';
-  if (!must && !warn) tags += '<span class="tag grn">✓ 通過</span>';
+  // GH status tag
+  var un=r._unitKey||r.unit;
+  var entry=UNIT_MAP[un];
+  var ghTag='';
+  if(entry&&entry.ghStatus==='uploading')ghTag='<span class="tag grey">⏳ GitHub 上傳中...</span>';
+  else if(entry&&entry.ghStatus==='done')ghTag='<span class="tag green">☁️ GitHub 已存檔</span>';
+  else if(entry&&entry.ghStatus==='err')ghTag='<span class="tag red" title="'+esc(entry.ghMsg||'')+'">⚠️ GitHub 失敗</span>';
 
-  var body = '';
-  if (r.parseErr) {
-    body = '<div style="color:var(--red);font-size:12px;padding:8px 0">⚠ 解析錯誤：' + esc(r.parseErr) + '</div>';
-  } else if (!must && !warn) {
-    /* gh-status div is here — upload will update it after cards render */
-    body = '<div class="ok-box">✅ 本單位 ' + r.cases.length + ' 案全部通過，正在上傳至 GitHub 保存…</div>'
-      + '<div class="gh-status uploading" id="ghs' + idx + '"><div class="spin"></div> 正在上傳至 GitHub...</div>';
-  } else {
-    if (e.se.length) {
-      body += ebHdr('red', '🔴', '必須修正', '項次順序錯誤', '主計畫應為連續整數 1,2,3…');
-      e.se.forEach(function (s) {
-        body += '<div class="note red">實際：[' + s.found.join(', ') + ']　期望：[' + s.expected.join(', ') + ']<br>'
-          + '如有特殊情形（某案刪除）請在備註欄說明並修正項次後重新回傳。</div>';
-      });
-      body += '</div>';
+  var body='';
+  if(r.parseErr){
+    body='<div style="color:var(--red);padding:10px 0;font-size:13px">⚠ 解析錯誤：'+esc(r.parseErr)+'</div>';
+  }else if(!isErr){
+    body='<div class="ok-box">✅ 本單位 '+r.cases.length+' 案資料均通過檢核，無錯誤。</div>';
+    if(entry&&entry.ghStatus==='uploading')body+='<div class="gh-uploading">⏳ 正在上傳至 GitHub...</div>';
+    else if(entry&&entry.ghStatus==='done')body+='<div class="gh-done">☁️ 已存檔至 GitHub：<a href="'+esc(entry.ghUrl||'')+'" target="_blank" style="color:var(--accent)">查看檔案</a></div>';
+    else if(entry&&entry.ghStatus==='err')body+='<div class="gh-fail">⚠️ GitHub 上傳失敗：'+esc(entry.ghMsg||'')+' <button class="btn-s" style="font-size:10px;padding:2px 8px;margin-left:6px" onclick="retryGH(\''+esc(un)+'\')">重試</button></div>';
+  }else{
+    if(r.ue.length){
+      body+='<div class="eg"><div class="eg-ttl purple">🔴 疑似「元/千元」填報錯誤（'+r.ue.length+' 案）</div>';
+      body+=buildTable(['案次','計畫名稱','本年度預算(千元)','月分配加總(實填)','倍率'],
+        r.ue.map(function(e){return'<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td><td>'+esc(trunc(e.nm,36))+'</td><td class="mn">'+fmt(e.budget)+'</td><td class="mn" style="color:var(--purple)">'+fmt(e.ms)+'</td><td><span class="pill pu">×1000</span></td></tr>';}));
+      body+='<div class="note">👉 月分配欄位單位為「千元」，請將各月填入數值除以 1,000 後重新填報。</div></div>';
     }
-    if (e.ue.length) {
-      body += ebHdr('pur', '🟣', '必須修正', '疑似元/千元填報錯誤（' + e.ue.length + ' 案）', '月分配合計 ≈ 預算 × 1,000');
-      body += mkTbl(['案次', '計畫名稱', '本年度預算(千元)', '月分配加總'],
-        e.ue.map(function (x) { return mkTr([cnTag(x.cn), trunc(x.nm, 36), mnR(x.bud), '<span style="color:var(--pur)">' + fmt(x.ms) + '</span>']); }));
-      body += '<div class="note pur">分配數欄位單位為千元，請將各月填入金額 ÷ 1,000 後重新填報。</div></div>';
+    if(r.be.length){
+      body+='<div class="eg"><div class="eg-ttl red">⚠ 月分配合計 ≠ 本年度預算數（'+r.be.length+' 筆）</div>';
+      body+=buildTable(['案次','計畫名稱','本年度預算(千元)','月分配合計','差額','類型'],
+        r.be.map(function(e){var dc=e.diff>0?'pos':'neg';return'<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td><td>'+esc(trunc(e.nm,36))+'</td><td class="mn">'+fmt(e.budget)+'</td><td class="mn" style="color:'+(e.ms===0?'var(--amber)':'inherit')+'">'+fmt(e.ms)+'</td><td><span class="pill '+dc+'">'+(e.diff>0?'+':'')+fmt(e.diff)+'</span></td><td style="font-size:11px">'+esc(e.type)+'</td></tr>';}));
+      body+='</div>';
     }
-    if (e.fe.length) {
-      body += ebHdr('red', '🔴', '必須修正', '主計畫必填欄位缺漏（' + e.fe.length + ' 案）', '欄位空白且備註無說明');
-      body += mkTbl(['案次', '計畫名稱', '缺漏欄位', '備註現況'],
-        e.fe.map(function (x) {
-          return mkTr([cnTag(x.cn), trunc(x.nm, 32),
-            x.miss.map(function (m) { return '<span class="mb-tag">' + esc(m) + '</span>'; }).join(''),
-            x.remark ? esc(x.remark) : '<span style="color:var(--tx3)">（空白）</span>']);
-        }));
-      body += '<div class="note red">若屬補助款不需發包、規劃設計案等特殊情形，請於備註欄填寫說明，否則不通過。</div></div>';
+    if(r.me.length){
+      body+='<div class="eg"><div class="eg-ttl amber">⚠ 必填欄位缺漏（'+r.me.length+' 案）</div>';
+      body+=buildTable(['案次','計畫名稱','缺漏欄位'],
+        r.me.map(function(e){return'<tr><td><span class="cn">'+esc(e.cn||'-')+'</span></td><td>'+esc(trunc(e.nm,36))+'</td><td>'+e.miss.map(function(m){return'<span class="mb">'+esc(m)+'</span>';}).join('')+'</td></tr>';}));
+      body+='<div class="note">👉 若屬補助款不需發包、規劃設計案等情形，可於備註欄填寫說明，系統將自動豁免驗證。</div></div>';
     }
-    if (e.fw.length) {
-      body += ebHdr('amb', '🟡', '請主辦核認', '欄位空白但有備註說明（' + e.fw.length + ' 案）', '');
-      body += mkTbl(['案次', '計畫名稱', '空白欄位', '備註內容'],
-        e.fw.map(function (x) {
-          return mkTr([cnTag(x.cn), trunc(x.nm, 28),
-            x.miss.map(function (m) { return '<span class="mb-tag amb">' + esc(m) + '</span>'; }).join(''),
-            '<span style="font-size:10px;color:var(--tx2)">' + esc(trunc(x.remark, 48)) + '</span>']);
-        }));
-      body += '<div class="note amb">備註說明充分可接受；說明不足請要求補填。</div></div>';
-    }
-    if (e.ba.length) {
-      body += ebHdr('red', '🔴', '必須修正', '預算欄位加總不符（' + e.ba.length + ' 筆）', '(1)≠(2)+(3)');
-      body += mkTbl(['案次', '計畫名稱', '(1)', '(2)央', '(3)縣', '計算值', '差額'],
-        e.ba.map(function (x) {
-          var calc = x.cen + x.loc;
-          return mkTr([cnTag(x.cn), trunc(x.nm, 22), mnR(x.bud), mnR(x.cen), mnR(x.loc), mnR(calc),
-            '<span class="pill ' + (x.diff > 0 ? 'neg' : 'pos') + '">' + (x.diff > 0 ? '+' : '') + fmt(x.diff) + '</span>']);
-        }));
-      body += '<div class="note red">請確認欄(1)是否等於欄(2)+欄(3)，如有公式異常請修正後重新回傳。</div></div>';
-    }
-    if (e.me.length) {
-      body += ebHdr('red', '🔴', '必須修正', '月分配合計 ≠ 本年度預算數（' + e.me.length + ' 筆）', '');
-      body += mkTbl(['案次', '計畫名稱', '預算數', '月分配合計', '差額', '類型'],
-        e.me.map(function (x) {
-          return mkTr([cnTag(x.cn), trunc(x.nm, 28), mnR(x.bud),
-            '<span class="mn" style="display:block;text-align:right;color:' + (x.ms === 0 ? 'var(--amb)' : 'inherit') + '">' + fmt(x.ms) + '</span>',
-            '<span class="pill ' + (x.diff > 0 ? 'pos' : 'neg') + '">' + (x.diff > 0 ? '+' : '') + fmt(x.diff) + '</span>',
-            esc(x.type)]);
-        }));
-      body += '</div>';
-    }
-    if (e.de > 0) {
-      body += '<div class="eb"><div class="eb-hdr blue">ℹ #DIV/0! 統計（' + e.de + ' 格）</div>'
-        + '<div class="note blue">表三累計分配預算數欄位尚未填入所致，請確認各案撥付狀態。</div></div>';
+    if(r.de>0){
+      body+='<div class="eg"><div class="eg-ttl blue">ℹ #DIV/0! 統計（'+r.de+' 格）</div><div class="note">共偵測到 <strong style="color:var(--accent)">'+r.de+'</strong> 個 #DIV/0! 錯誤格，通常出現於「累計分配預算數」欄位尚未填入。</div></div>';
     }
   }
 
-  var open = must || warn;
-  return '<div class="uc ' + cls + '" id="uc' + idx + '">'
-    + '<div class="uc-hdr" onclick="tog(' + idx + ')">'
-    + '<div><div class="uc-name">' + esc(r.unit) + '</div>'
-    + '<div class="uc-meta">' + esc(r.sheet) + ' ｜ ' + esc(r.fn) + ' ｜ ' + r.cases.length + ' 案</div></div>'
-    + '<div class="uc-tags">' + tags + '</div>'
-    + '<span class="chev' + (open ? ' open' : '') + '" id="ch' + idx + '">▶</span>'
-    + '</div>'
-    + '<div class="uc-body' + (open ? ' open' : '') + '" id="bd' + idx + '">'
-    + body
-    + (r.cases.length ? '<button class="btn-s btn-xs" onclick="exportOne(' + idx + ')">📥 匯出報告</button>' : '')
-    + '</div></div>';
+  return'<div class="uc '+cls+'" id="uc'+i+'">'
+    +'<div class="uc-hdr" onclick="tog('+i+')">'
+    +'<div><div class="uc-name">'+esc(r.unit)+'</div>'
+    +'<div class="uc-meta">工作表：'+esc(r.sheet)+' ｜ '+esc(r.fn)+' ｜ 共 '+r.cases.length+' 案</div></div>'
+    +'<div class="uc-tags">'+tags+ghTag+'</div>'
+    +'<span class="chev'+(isErr?' open':'')+('' )+'" id="ch'+i+'">▶</span>'
+    +'</div>'
+    +'<div class="uc-body'+(isErr?' open':'')+('' )+'" id="bd'+i+'">'
+    +body
+    +(r.cases.length?'<button class="btn-s" style="margin-top:13px" onclick="exportOne('+i+')">📥 匯出本單位 HTML 報告</button>':'')
+    +'</div></div>';
 }
 
-function tog(i) { g('bd' + i).classList.toggle('open'); g('ch' + i).classList.toggle('open'); }
-
-function ebHdr(cls, ico, sev, title, sub) {
-  return '<div class="eb"><div class="eb-hdr ' + cls + '">'
-    + ico + ' <span class="sev ' + (sev === '必須修正' ? 'must' : 'info') + '">' + sev + '</span>'
-    + esc(title) + (sub ? '<span class="cnt">' + esc(sub) + '</span>' : '') + '</div>';
-}
-function mkTbl(cols, rows) {
-  return '<table><thead><tr>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
-}
-function mkTr(cells) { return '<tr>' + cells.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }
-function cnTag(cn) { return '<span class="cn">' + esc(cn || '—') + '</span>'; }
-function mnR(n) { return '<span class="mn" style="display:block;text-align:right">' + fmt(n) + '</span>'; }
-
-/* ════════════════════════════════════════
-   GITHUB UPLOAD
-════════════════════════════════════════ */
-function ghCfg() {
-  return { user: ls('gh_user') || '', repo: ls('gh_repo') || '', token: ls('gh_token') || '' };
-}
-
-function uploadToGitHub(r, idx) {
-  var cfg = ghCfg();
-
-  /* No config → show friendly notice, don't try API */
-  if (!cfg.user || !cfg.repo || !cfg.token) {
-    setGHStatus(idx, 'noconf', '⚙ 尚未設定 GitHub（請至「⚙️ 設定」頁填入 Token）');
-    return;
-  }
-
-  /* Read file as base64 */
-  var reader = new FileReader();
-  reader.onload = function (ev) {
-    var base64 = ev.target.result.split(',')[1];
-    var path = 'passed/' + r.fn;
-    var apiURL = 'https://api.github.com/repos/' + encodeURIComponent(cfg.user) + '/' + encodeURIComponent(cfg.repo) + '/contents/' + encodeURIComponent(path);
-    var headers = { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
-
-    /* GET to check existing sha (needed to update existing file) */
-    fetch(apiURL, { headers: { 'Authorization': headers['Authorization'], 'Accept': headers['Accept'] } })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (existing) {
-        var body = { message: '通過驗證：' + r.fn, content: base64 };
-        if (existing && existing.sha) body.sha = existing.sha;
-        return fetch(apiURL, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
-      })
-      .then(function (res) {
-        if (res.ok || res.status === 201) {
-          setGHStatus(idx, 'done', '☁ 已上傳至 GitHub passed/ 資料夾');
-          var n = parseInt(g('sGH').textContent, 10) || 0;
-          g('sGH').textContent = n + 1;
-          /* Update progress entry with upload confirmed */
-          var key = matchUnit(r.unit);
-          if (key && PROGRESS[key]) { PROGRESS[key].uploaded = true; saveProgress(); renderProgress(); }
-        } else {
-          return res.json().then(function (d) {
-            setGHStatus(idx, 'fail', '⚠ 上傳失敗：' + (d.message || res.status));
-          });
-        }
-      })
-      .catch(function (err) {
-        setGHStatus(idx, 'fail', '⚠ 網路錯誤：' + err.message);
-      });
-  };
-  reader.readAsDataURL(r.fileObj);
-}
-
-function setGHStatus(idx, state, msg) {
-  var el = g('ghs' + idx); if (!el) return;
-  el.className = 'gh-status ' + state;
-  el.innerHTML = (state === 'uploading' ? '<div class="spin"></div> ' : '') + esc(msg);
-}
-
-/* ════════════════════════════════════════
-   PROGRESS TRACKING
-════════════════════════════════════════ */
-function loadProgress() {
-  try { PROGRESS = JSON.parse(localStorage.getItem('cp_progress') || '{}'); }
-  catch (e) { PROGRESS = {}; }
-}
-
-function saveProgress() {
-  localStorage.setItem('cp_progress', JSON.stringify(PROGRESS));
-}
-
-function clearProgress() {
-  PROGRESS = {};
-  localStorage.removeItem('cp_progress');
-  renderProgress(); refreshStatusPanel();
-}
-
-/* Match a guessed unit name to the canonical UNITS list */
-function matchUnit(name) {
-  name = name.replace(/OK$/i, '').replace(/^\d+[._-]/, '').trim();
-  /* Exact match */
-  for (var i = 0; i < UNITS.length; i++) { if (UNITS[i] === name) return UNITS[i]; }
-  /* Substring match */
-  for (var i = 0; i < UNITS.length; i++) {
-    if (UNITS[i].indexOf(name) >= 0 || name.indexOf(UNITS[i]) >= 0) return UNITS[i];
-  }
-  /* 2-char prefix */
-  var short = name.substr(0, 2);
-  for (var i = 0; i < UNITS.length; i++) { if (UNITS[i].indexOf(short) >= 0) return UNITS[i]; }
-  return null;
-}
-
-function setFilter(f, btn) {
-  FILTER = f;
-  document.querySelectorAll('.filter-row .btn-s').forEach(function (b) { b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-  renderProgress();
-}
-
-function renderProgress() {
-  var passed = 0, failed = 0, pending = 0;
-  UNITS.forEach(function (u) {
-    var p = PROGRESS[u];
-    if (!p) pending++;
-    else if (p.status === 'passed') passed++;
-    else failed++;
+function retryGH(un){
+  var entry=UNIT_MAP[un];
+  if(!entry)return;
+  entry.ghStatus='uploading';
+  render();
+  uploadToGitHub(un,entry.filename,entry.ab).then(function(res){
+    entry.ghStatus=res.ok?'done':'err';
+    entry.ghUrl=res.url||'';
+    entry.ghMsg=res.msg||'';
+    render();
   });
-
-  setText('p-passed', passed); setText('p-failed', failed); setText('p-pending', pending);
-  var pct = Math.round(passed / TOTAL * 100);
-  g('prog-bar').style.width = pct + '%';
-  setText('prog-pct', passed + ' / ' + TOTAL + ' 單位完成（' + pct + '%）');
-
-  /* Update filter badges */
-  var allBtn = g('f-all'), passBtn = g('f-passed'), failBtn = g('f-failed'), pendBtn = g('f-pending');
-  if (allBtn) allBtn.textContent = '全部 (' + TOTAL + ')';
-  if (passBtn) passBtn.textContent = '✅ 已通過 (' + passed + ')';
-  if (failBtn) failBtn.textContent = '❌ 未通過 (' + failed + ')';
-  if (pendBtn) pendBtn.textContent = '⏳ 未回傳 (' + pending + ')';
-
-  /* Render unit cards */
-  var html = '';
-  UNITS.forEach(function (u) {
-    var p = PROGRESS[u];
-    var status = !p ? 'pending' : p.status;
-    if (FILTER !== 'all' && status !== FILTER) return;
-
-    var ico = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏳';
-    var sub = !p
-      ? '尚未回傳'
-      : status === 'passed'
-        ? (p.uploaded ? '已通過並上傳至 GitHub' : '已通過（本地記錄）')
-        : ('未通過：' + (p.errors && p.errors.length ? p.errors.join('、') : '有錯誤'));
-    var time = p ? p.time : '';
-
-    html += '<div class="ut ' + status + '">'
-      + '<div class="ut-ico">' + ico + '</div>'
-      + '<div><div class="ut-name">' + esc(u) + '</div>'
-      + '<div class="ut-sub">' + esc(sub) + '</div>'
-      + (time ? '<div class="ut-time">' + esc(time) + '</div>' : '')
-      + '</div></div>';
-  });
-  g('ut-grid').innerHTML = html || '<div style="text-align:center;padding:32px;color:var(--tx3)">無符合條件的單位</div>';
-
-  refreshStatusPanel();
 }
 
-function syncFromGitHub() {
-  var cfg = ghCfg();
-  if (!cfg.user || !cfg.repo || !cfg.token) {
-    alert('請先在「⚙️ 設定」頁填入 GitHub 帳號、Repository 和 Token。');
-    return;
-  }
-  var url = 'https://api.github.com/repos/' + encodeURIComponent(cfg.user) + '/' + encodeURIComponent(cfg.repo) + '/contents/passed';
-  fetch(url, { headers: { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json' } })
-    .then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
-    .then(function (files) {
-      if (!Array.isArray(files)) return;
-      var count = 0;
-      files.forEach(function (f) {
-        var key = matchUnit(f.name);
-        if (key) {
-          PROGRESS[key] = PROGRESS[key] || {};
-          PROGRESS[key].status = 'passed';
-          PROGRESS[key].uploaded = true;
-          PROGRESS[key].file = f.name;
-          PROGRESS[key].time = PROGRESS[key].time || '從 GitHub 同步';
-          PROGRESS[key].errors = PROGRESS[key].errors || [];
-          count++;
-        }
-      });
-      saveProgress(); renderProgress();
-      alert('✅ 同步完成，共取得 ' + count + ' 個已通過檔案。');
-    })
-    .catch(function (err) {
-      alert('同步失敗：' + err + '\n請確認 Token 和 repository 設定是否正確，以及 passed/ 資料夾是否存在。');
-    });
+function tog(i){g('bd'+i).classList.toggle('open');g('ch'+i).classList.toggle('open');}
+
+function buildTable(cols,rows){
+  return'<table><thead><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';
 }
 
-/* ════════════════════════════════════════
-   SETTINGS
-════════════════════════════════════════ */
-function saveSettings() {
-  ls('gh_user', g('gh-user').value.trim());
-  ls('gh_repo', g('gh-repo').value.trim());
-  ls('gh_token', g('gh-token').value.trim());
-  var ok = g('set-ok'); ok.classList.add('show');
-  setTimeout(function () { ok.classList.remove('show'); }, 3000);
-  refreshStatusPanel();
-}
-
-function refreshStatusPanel() {
-  var libEl = g('st-lib'), ghEl = g('st-gh'), cntEl = g('st-cnt');
-  if (!libEl) return;
-  libEl.textContent = XLSX_READY ? '✓ 已載入' : '載入中...';
-  libEl.style.color = XLSX_READY ? 'var(--grn)' : 'var(--tx3)';
-  var cfg = ghCfg();
-  if (cfg.user && cfg.repo && cfg.token) {
-    ghEl.textContent = '✓ ' + cfg.user + '/' + cfg.repo;
-    ghEl.style.color = 'var(--grn)';
-  } else {
-    ghEl.textContent = '未設定';
-    ghEl.style.color = 'var(--tx3)';
-  }
-  cntEl.textContent = Object.keys(PROGRESS).length + ' 筆';
-}
-
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    EXPORT
-════════════════════════════════════════ */
-function exportOne(i) { dl(buildReport(ALL[i]), ALL[i].unit + '_檢核報告.html'); }
-function exportAll() { ALL.forEach(function (r, i) { setTimeout(function () { dl(buildReport(r), r.unit + '_檢核報告.html'); }, i * 300); }); }
+═══════════════════════════════════════════════ */
+function exportOne(i){var r=ALL[i];dl(buildReport(r),r.unit+'_檢核報告.html');}
+function exportAll(){ALL.forEach(function(r,i){setTimeout(function(){dl(buildReport(r),r.unit+'_檢核報告.html');},i*320);});}
 
-function buildReport(r) {
-  var now = new Date().toLocaleString('zh-TW');
-  var e = r.errs, must = mustCount(r);
-  var css = 'body{font-family:"Microsoft JhengHei",sans-serif;max-width:960px;margin:0 auto;padding:26px 20px 60px;background:#fafafa;color:#1a1a2e}'
-    + 'h1{color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:9px}'
-    + '.meta{background:#e3f2fd;border-radius:8px;padding:12px 15px;margin:13px 0 20px;font-size:13px;color:#0d47a1;line-height:1.8}'
-    + '.ok{background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:12px 15px;color:#1b5e20;font-size:13px;font-weight:600;margin:14px 0}'
-    + '.must{background:#ffebee;border:2px solid #f44336;border-radius:8px;padding:12px 15px;color:#c62828;font-size:13px;font-weight:600;margin:14px 0}'
-    + '.sh{font-size:12px;font-weight:700;padding:6px 9px;border-radius:5px;margin:20px 0 7px}'
-    + '.sh.r{background:#ffebee;color:#c62828}.sh.a{background:#fff8e1;color:#e65100}.sh.p{background:#f3e5f5;color:#7b1fa2}.sh.b{background:#e3f2fd;color:#1565c0}'
-    + '.nt{font-size:11px;padding:6px 10px;border-radius:0 4px 4px 0;margin:4px 0 8px;line-height:1.5}'
-    + '.nt.r{background:#ffebee;color:#c62828;border-left:3px solid #f44336}.nt.a{background:#fff8e1;color:#e65100;border-left:3px solid #ff9800}.nt.p{background:#f3e5f5;color:#7b1fa2;border-left:3px solid #9c27b0}'
-    + 'table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}'
-    + 'th{background:#e8eaf6;color:#283593;padding:7px 10px;text-align:left;border:1px solid #c5cae9}'
-    + 'td{padding:6px 10px;border:1px solid #e0e0e0;vertical-align:top}tr:nth-child(even)td{background:#f5f5f5}'
-    + '.tg{display:inline-block;padding:1px 6px;border-radius:3px;margin:1px;font-size:11px}'
-    + '.tg.r{background:#ffebee;color:#c62828;border:1px solid #f44336}.tg.a{background:#fff3e0;color:#e65100;border:1px solid #ff9800}'
-    + 'hr{margin:32px 0;border:none;border-top:1px solid #e0e0e0}footer{font-size:11px;color:#9e9e9e}';
-
-  function rTbl(cols, rows) {
-    return '<table><thead><tr>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+function buildReport(r){
+  var now=new Date().toLocaleString('zh-TW');
+  var ue=r.ue||[],be=r.be||[],me=r.me||[],de=r.de||0;
+  var isErr=hasError(r);
+  function tbl(cols,rows){return'<table><thead><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';}
+  var body='';
+  if(r.parseErr)body='<div class="box red">⚠ 解析錯誤：'+esc(r.parseErr)+'</div>';
+  else if(!isErr)body='<div class="box green">✅ 本單位所有計畫案資料均通過檢核，無錯誤，感謝配合！</div>';
+  else{
+    if(ue.length)body+='<h3 class="rh">🔴 疑似「元/千元」填報錯誤（'+ue.length+' 案）</h3><div class="note">月分配欄位單位為「千元」，以下案件月分配加總約為預算數的 1,000 倍。請除以 1,000 重填。</div>'+tbl(['案次','計畫名稱','本年度預算(千元)','月分配加總','倍率'],ue.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td align="right">'+fmt(e.budget)+'</td><td align="right" style="color:#7b1fa2"><b>'+fmt(e.ms)+'</b></td><td align="center">×1000</td></tr>';}));
+    if(be.length)body+='<h3 class="rh">⚠ 月分配合計 ≠ 本年度預算數（'+be.length+' 筆）</h3>'+tbl(['案次','計畫名稱','本年度預算(千元)','月分配合計','差額','類型'],be.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td align="right">'+fmt(e.budget)+'</td><td align="right">'+fmt(e.ms)+'</td><td align="right" style="color:#c62828"><b>'+(e.diff>0?'+':'')+fmt(e.diff)+'</b></td><td>'+esc(e.type)+'</td></tr>';}));
+    if(me.length)body+='<h3 class="ah">⚠ 必填欄位缺漏（'+me.length+' 案）</h3><div class="note">若屬補助款不需發包、規劃設計案等情形，請於備註欄填寫說明。</div>'+tbl(['案次','計畫名稱','缺漏欄位'],me.map(function(e){return'<tr><td><b>'+esc(e.cn||'-')+'</b></td><td>'+esc(e.nm||'')+'</td><td>'+e.miss.map(function(m){return'<span class="tm">'+esc(m)+'</span>';}).join('')+'</td></tr>';}));
+    if(de>0)body+='<h3 style="color:#1565c0;margin-top:24px">ℹ #DIV/0! 統計（'+de+' 格）</h3><div class="note">共偵測到 <b>'+de+'</b> 個 #DIV/0! 錯誤格（通常為「累計分配預算數」尚未填入）。</div>';
   }
-
-  var body = '';
-  if (r.parseErr) body = '<div class="must">⚠ 解析錯誤：' + esc(r.parseErr) + '</div>';
-  else if (!must && !e.fw.length) body = '<div class="ok">✅ 本單位所有資料通過檢核，感謝配合！</div>';
-  else {
-    if (must) body += '<div class="must">⚠ 共 ' + must + ' 項必須修正，請依下方說明更正後重新回傳。</div>';
-    if (e.se.length) {
-      body += '<div class="sh r">🔴【必須修正】項次順序錯誤</div>';
-      e.se.forEach(function (s) { body += '<div class="nt r">實際：[' + s.found.join(', ') + ']　期望：[' + s.expected.join(', ') + ']<br>請修正後重新回傳，特殊情形請備註說明。</div>'; });
-    }
-    if (e.ue.length) {
-      body += '<div class="sh p">🟣【必須修正】元/千元填報錯誤（' + e.ue.length + ' 案）</div>'
-        + '<div class="nt p">月分配欄位單位為千元，以下案件加總≈預算×1000，請 ÷ 1000 重填。</div>'
-        + rTbl(['案次', '計畫名稱', '預算(千元)', '月合計'],
-          e.ue.map(function (x) { return '<tr><td><b>' + esc(x.cn || '—') + '</b></td><td>' + esc(x.nm || '') + '</td><td align="right">' + fmt(x.bud) + '</td><td align="right" style="color:#7b1fa2"><b>' + fmt(x.ms) + '</b></td></tr>'; }));
-    }
-    if (e.fe.length) {
-      body += '<div class="sh r">🔴【必須修正】必填欄位缺漏（' + e.fe.length + ' 案）</div>'
-        + '<div class="nt r">預計決標日、預計開工日、履約期間均必填；特殊情形請在備註欄說明。</div>'
-        + rTbl(['案次', '計畫名稱', '缺漏欄位', '備註'],
-          e.fe.map(function (x) {
-            return '<tr><td><b>' + esc(x.cn || '—') + '</b></td><td>' + esc(x.nm || '') + '</td>'
-              + '<td>' + x.miss.map(function (m) { return '<span class="tg r">' + esc(m) + '</span>'; }).join('') + '</td>'
-              + '<td style="color:#999">' + (x.remark ? esc(x.remark) : '（空白）') + '</td></tr>';
-          }));
-    }
-    if (e.fw.length) {
-      body += '<div class="sh a">🟡【請主辦核認】欄位空白但有備註（' + e.fw.length + ' 案）</div>'
-        + rTbl(['案次', '計畫名稱', '空白欄位', '備註'],
-          e.fw.map(function (x) {
-            return '<tr><td><b>' + esc(x.cn || '—') + '</b></td><td>' + esc(x.nm || '') + '</td>'
-              + '<td>' + x.miss.map(function (m) { return '<span class="tg a">' + esc(m) + '</span>'; }).join('') + '</td>'
-              + '<td style="font-size:11px">' + esc(x.remark || '') + '</td></tr>';
-          }));
-    }
-    if (e.ba.length) {
-      body += '<div class="sh r">🔴【必須修正】預算加總不符（' + e.ba.length + ' 筆）</div>'
-        + '<div class="nt r">本年度預算數(1) 應等於 央款(2) + 縣款(3)。</div>'
-        + rTbl(['案次', '計畫名稱', '(1)', '(2)', '(3)', '(2)+(3)', '差額'],
-          e.ba.map(function (x) {
-            var calc = x.cen + x.loc;
-            return '<tr><td><b>' + esc(x.cn || '—') + '</b></td><td>' + esc(x.nm || '') + '</td>'
-              + '<td align="right">' + fmt(x.bud) + '</td><td align="right">' + fmt(x.cen) + '</td>'
-              + '<td align="right">' + fmt(x.loc) + '</td><td align="right">' + fmt(calc) + '</td>'
-              + '<td align="right" style="color:#c62828"><b>' + (x.diff > 0 ? '+' : '') + fmt(x.diff) + '</b></td></tr>';
-          }));
-    }
-    if (e.me.length) {
-      body += '<div class="sh r">🔴【必須修正】月分配合計 ≠ 預算數（' + e.me.length + ' 筆）</div>'
-        + rTbl(['案次', '計畫名稱', '預算數', '月合計', '差額', '類型'],
-          e.me.map(function (x) {
-            return '<tr><td><b>' + esc(x.cn || '—') + '</b></td><td>' + esc(x.nm || '') + '</td>'
-              + '<td align="right">' + fmt(x.bud) + '</td>'
-              + '<td align="right" style="color:' + (x.ms === 0 ? '#e65100' : 'inherit') + '">' + fmt(x.ms) + '</td>'
-              + '<td align="right" style="color:#c62828"><b>' + (x.diff > 0 ? '+' : '') + fmt(x.diff) + '</b></td>'
-              + '<td>' + esc(x.type) + '</td></tr>';
-          }));
-    }
-    if (e.de > 0) {
-      body += '<div class="sh b">ℹ #DIV/0! 統計（' + e.de + ' 格）</div>'
-        + '<p style="font-size:12px;color:#1565c0;margin:4px 0">表三累計分配預算數欄位尚未填入，請確認撥付狀態，已撥付者請補填。</p>';
-    }
-  }
-
-  return '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + esc(r.unit) + '－資本門計畫檢核報告</title>'
-    + '<style>' + css + '</style></head><body>'
-    + '<h1>📋 114年度資本門計畫 · 資料檢核報告</h1>'
-    + '<div class="meta">報告對象：<strong>' + esc(r.unit) + '</strong><br>來源檔案：' + esc(r.fn) + '　工作表：' + esc(r.sheet) + '<br>計畫案數：<strong>' + r.cases.length + '</strong>　產生時間：' + now + '</div>'
-    + body + '<hr><footer>宜蘭縣政府資本門計畫檢核系統 ｜ ' + now + '</footer></body></html>';
+  return'<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(r.unit)+'－資本門計畫檢核報告</title>'
+    +'<style>body{font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;max-width:960px;margin:0 auto;padding:32px 24px 60px;background:#fafafa;color:#1a1a2e}'
+    +'h1{color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:10px}'
+    +'.meta{background:#e3f2fd;border-radius:8px;padding:14px 18px;margin:16px 0 24px;font-size:13px;color:#0d47a1;line-height:1.8}'
+    +'.box{border-radius:8px;padding:14px 18px;font-size:14px;font-weight:600;margin:16px 0}'
+    +'.box.green{background:#e8f5e9;border:2px solid #4caf50;color:#1b5e20}'
+    +'.box.red{background:#ffebee;border:2px solid #f44336;color:#c62828}'
+    +'.rh{color:#c62828;margin:28px 0 10px}.ah{color:#e65100;margin:28px 0 10px}'
+    +'.note{background:#f5f5f5;border-radius:6px;padding:8px 12px;font-size:12px;margin:8px 0 10px;line-height:1.6}'
+    +'table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}'
+    +'th{background:#e8eaf6;color:#283593;padding:8px 11px;text-align:left;border:1px solid #c5cae9}'
+    +'td{padding:7px 11px;border:1px solid #e0e0e0;vertical-align:top}'
+    +'tr:nth-child(even)td{background:#f5f5f5}'
+    +'.tm{background:#fff3e0;border:1px solid #e65100;color:#e65100;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block}'
+    +'hr{margin:40px 0;border:none;border-top:1px solid #e0e0e0}'
+    +'footer{font-size:11px;color:#9e9e9e}'
+    +'</style></head><body>'
+    +'<h1>📋 114年度資本門計畫 · 資料檢核報告</h1>'
+    +'<div class="meta">報告對象：<strong>'+esc(r.unit)+'</strong><br>來源檔案：'+esc(r.fn)+'　｜　工作表：'+esc(r.sheet)+'<br>計畫案數：<strong>'+r.cases.length+'</strong>　｜　報告時間：'+now+'</div>'
+    +body
+    +'<hr><footer>本報告由宜蘭縣政府資本門計畫檢核系統自動產生 ｜ '+now+'</footer>'
+    +'</body></html>';
 }
 
-function exportCSV() {
-  var rows = ['\uFEFF單位,案次,計畫名稱,等級,錯誤類型,說明'];
-  ALL.forEach(function (r) {
-    if (r.parseErr) { rows.push([r.unit, '', '', '必須修正', '解析失敗', r.parseErr].map(ce).join(',')); return; }
-    var e = r.errs;
-    e.se.forEach(function (s) { rows.push([r.unit, '', '', '必須修正', '項次錯誤', '實際:[' + s.found.join(',') + '] 期望:[' + s.expected.join(',') + ']'].map(ce).join(',')); });
-    e.ue.forEach(function (x) { rows.push([r.unit, x.cn || '', x.nm || '', '必須修正', '元/千元混填', '月合計=' + x.ms].map(ce).join(',')); });
-    e.fe.forEach(function (x) { rows.push([r.unit, x.cn || '', x.nm || '', '必須修正', '必填缺漏', x.miss.join('、')].map(ce).join(',')); });
-    e.fw.forEach(function (x) { rows.push([r.unit, x.cn || '', x.nm || '', '請核認', '備註說明', x.miss.join('、') + '｜' + x.remark].map(ce).join(',')); });
-    e.ba.forEach(function (x) { rows.push([r.unit, x.cn || '', x.nm || '', '必須修正', '預算加總不符', '(1)=' + x.bud + ' (2)=' + x.cen + ' (3)=' + x.loc].map(ce).join(',')); });
-    e.me.forEach(function (x) { rows.push([r.unit, x.cn || '', x.nm || '', '必須修正', '月分配不符', x.type + ' 預算' + x.bud + ' 合計' + x.ms].map(ce).join(',')); });
-    if (!mustCount(r) && !e.fw.length) rows.push([r.unit, '', '', '全部通過', '—', ''].map(ce).join(','));
+function exportCSV(){
+  var rows=['\uFEFF單位,案次,計畫名稱,錯誤類型,說明'];
+  ALL.forEach(function(r){
+    if(r.parseErr){rows.push([r.unit,'','','解析失敗',r.parseErr].map(ce).join(','));return;}
+    r.ue.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','元/千元混填','月合計≈預算×1000'].map(ce).join(','));});
+    r.be.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','月分配不符',e.type+'　預算'+e.budget+'千元　合計'+e.ms+'千元　差額'+e.diff].map(ce).join(','));});
+    r.me.forEach(function(e){rows.push([r.unit,e.cn||'',e.nm||'','必填缺漏',e.miss.join('、')].map(ce).join(','));});
+    if(!r.ue.length&&!r.be.length&&!r.me.length)rows.push([r.unit,'','','全部通過',''].map(ce).join(','));
   });
-  dl(rows.join('\n'), '資本門計畫檢核_錯誤清單.csv', 'text/csv;charset=utf-8');
+  dl(rows.join('\n'),'資本門計畫檢核_錯誤清單.csv','text/csv;charset=utf-8');
 }
 
-/* ════════════════════════════════════════
-   UTILITIES
-════════════════════════════════════════ */
-function g(id) { return document.getElementById(id); }
-function ls(key, val) {
-  if (val !== undefined) { localStorage.setItem(key, val); return val; }
-  return localStorage.getItem(key);
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+function g(id){return document.getElementById(id);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ce(s){s=String(s||'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+function fmt(n){return Number(n||0).toLocaleString('zh-TW');}
+function trunc(s,n){s=String(s||'');return s.length>n?s.substr(0,n)+'…':s;}
+function setText(id,v){var el=g(id);if(el)el.textContent=v;}
+function dl(content,name,type){
+  var blob=new Blob([content],{type:type||'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
 }
-function sz(rowOrVal, col) {
-  var v = (col !== undefined && Array.isArray(rowOrVal)) ? rowOrVal[col] : rowOrVal;
-  if (v === null || v === undefined) return '';
-  var s = String(v).trim(); return (s === '' || s === 'null') ? '' : s;
-}
-function nv(row, col) {
-  if (col === undefined || col === null) return 0;
-  var v = Array.isArray(row) ? row[col] : null;
-  if (v === null || v === undefined) return 0;
-  var n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n;
-}
-function guessName(fn) { return fn.replace(/\.ods$/i, '').replace(/^\d+[._-]/, '').replace(/OK$/i, '').replace(/^[\s._]+/, '').trim(); }
-function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-function ce(s) { s = String(s || ''); return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g, '""') + '"' : s; }
-function fmt(n) { return Number(n || 0).toLocaleString('zh-TW'); }
-function trunc(s, n) { s = esc(String(s || '')); return s.length > n ? s.substr(0, n) + '…' : s; }
-function setText(id, v) { var el = g(id); if (el) el.textContent = v; }
-function dl(content, name, type) {
-  var blob = new Blob([content], { type: type || 'text/html;charset=utf-8' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a'); a.href = url; a.download = name;
-  document.body.appendChild(a); a.click();
-  setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
-}
-function clearAll() {
-  ALL = []; g('res').style.display = 'none'; g('fi').value = ''; g('cards').innerHTML = '';
-  g('pg').classList.remove('on');
+function clearAll(){
+  ALL=[];UNIT_MAP={};
+  g('res').style.display='none';g('fi').value='';g('cards').innerHTML='';
+  renderDashboard();
 }
 </script>
 </body>
