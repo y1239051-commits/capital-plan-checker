@@ -505,7 +505,7 @@ function openMailtoTab(unitKey,email){
   var subj=subjTpl.replace('{單位}',r.unit);
   var body=buildTextSummary(r);
   if(body.length>1800)body=body.substr(0,1800)+'\n\n…（詳細內容請見附件 HTML 報告）';
-  var mailto='mailto:'+encodeURIComponent(email)
+  var mailto='mailto:'+email
     +'?subject='+encodeURIComponent(subj)
     +'&body='+encodeURIComponent(body);
   return window.open(mailto,'_blank');
