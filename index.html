@@ -505,10 +505,17 @@ function openMailtoTab(unitKey,email){
   var subj=subjTpl.replace('{單位}',r.unit);
   var body=buildTextSummary(r);
   if(body.length>1800)body=body.substr(0,1800)+'\n\n…（詳細內容請見附件 HTML 報告）';
-  var mailto='mailto:'+email
-    +'?subject='+encodeURIComponent(subj)
+  /* 使用 Gmail Compose URL，不依賴系統 mailto handler */
+  var gmailUrl='https://mail.google.com/mail/?view=cm&fs=1'
+    +'&to='+encodeURIComponent(email)
+    +'&su='+encodeURIComponent(subj)
     +'&body='+encodeURIComponent(body);
-  return window.open(mailto,'_blank');
+  var tab=window.open(gmailUrl,'_blank');
+  /* 若 popup 被擋，改用 location.href 開啟（不會被擋） */
+  if(!tab||tab.closed||typeof tab.closed==='undefined'){
+    window.location.href=gmailUrl;
+  }
+  return tab;
 }
 
 /* ═══════════════════════════════════════════════
